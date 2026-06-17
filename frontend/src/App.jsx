@@ -1,11 +1,15 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import QRCode from "react-qr-code";
 import {
   BadgeCheck,
   Banknote,
   Building2,
   ClipboardCheck,
+  Copy,
   ExternalLink,
   Leaf,
+  Link2,
+  QrCode,
   Recycle,
   ReceiptText,
   ShieldCheck,
@@ -33,7 +37,7 @@ import {
   verifyProject,
   withdrawFunds,
 } from "./lib/stellar";
-import { demoHolding, demoProject, PROJECT_ID } from "./lib/demoData";
+import { demoCampaigns, demoHolding, demoProject, PROJECT_ID } from "./lib/demoData";
 
 const flowTabs = [
   {
@@ -49,7 +53,7 @@ const flowTabs = [
     label: "Merchant Console",
     title: "Campaign finance view",
     metric: "Escrowed payout",
-    detail: "The merchant tracks sold vouchers, vault balance, and public proof.",
+    detail: "The merchant tracks campaigns, checkout links, vault balances, and public proof.",
     icon: Store,
   },
   {
@@ -63,10 +67,10 @@ const flowTabs = [
 ];
 
 const financeFlow = [
-  { label: "Checkout", detail: "Customer buys a voucher", icon: ShoppingCart },
-  { label: "Vault", detail: "Funds move into escrow", icon: Banknote },
-  { label: "Verification", detail: "Impact report is recorded", icon: BadgeCheck },
-  { label: "Receipt", detail: "Customer retires proof", icon: ReceiptText },
+  { label: "Checkout", detail: "Customer scans QR or opens a checkout link", icon: ShoppingCart },
+  { label: "Vault", detail: "Funds move into Soroban escrow", icon: Banknote },
+  { label: "Verification", detail: "Impact report unlocks payout", icon: BadgeCheck },
+  { label: "Receipt", detail: "Customer receives public proof", icon: ReceiptText },
 ];
 
 function asNumber(value) {
@@ -101,6 +105,42 @@ function normalizeHolding(holding) {
     retired_units: asNumber(holding?.retired_units ?? 0),
     paid_amount: asNumber(holding?.paid_amount ?? 0),
   };
+}
+
+function getContractCampaign() {
+  return demoCampaigns.find((campaign) => campaign.contractBacked) || demoCampaigns[0];
+}
+
+function getCampaignByProjectId(projectId) {
+  return demoCampaigns.find((campaign) => campaign.projectId === Number(projectId)) || getContractCampaign();
+}
+
+function getCheckoutProjectIdFromHash() {
+  if (typeof window === "undefined") return PROJECT_ID;
+  const match = window.location.hash.match(/^#\/checkout\/(\d+)$/);
+  return match ? Number(match[1]) : PROJECT_ID;
+}
+
+function makeCheckoutLink(projectId) {
+  if (typeof window === "undefined") return `#/checkout/${projectId}`;
+  return `${window.location.origin}${window.location.pathname}#/checkout/${projectId}`;
+}
+
+function campaignToProject(campaign, liveProject) {
+  if (campaign.contractBacked) return liveProject;
+  return normalizeProject({
+    ...liveProject,
+    title: campaign.title,
+    impact_unit: campaign.impactUnit,
+    report_hash: campaign.reportHash,
+    price_per_voucher: campaign.pricePerVoucher,
+    unit_per_voucher: campaign.unitPerVoucher,
+    vouchers_sold: campaign.vouchersSold,
+    funded_amount: campaign.fundedAmount,
+    withdrawn_amount: campaign.withdrawnAmount,
+    verified_units: campaign.verifiedUnits,
+    retired_units: Math.min(campaign.verifiedUnits, campaign.unitPerVoucher * 4),
+  });
 }
 
 function Metric({ icon, label, value, detail, tone = "default" }) {
@@ -161,13 +201,94 @@ function RoleCard({ flow, active, onClick }) {
   );
 }
 
-function ImpactReceipt({ address, project, preview, quantity, lastTx }) {
+function CampaignCard({ campaign, active, onSelect, onOpenCheckout }) {
+  const verificationLabel =
+    campaign.verifiedUnits > 0 ? `${campaign.verifiedUnits.toLocaleString()} verified` : "Awaiting verifier";
+
+  return (
+    <article className={`campaign-card ${active ? "active" : ""}`}>
+      <button className="campaign-select" type="button" onClick={() => onSelect(campaign.projectId)}>
+        <div className="campaign-card-top">
+          <span className={`campaign-badge ${campaign.contractBacked ? "live" : "preview"}`}>
+            {campaign.contractBacked ? "Contract-backed" : "Preview campaign"}
+          </span>
+          <strong>#{campaign.projectId}</strong>
+        </div>
+        <h3>{campaign.title}</h3>
+        <p>
+          {campaign.merchant} - {campaign.checkoutChannel}
+        </p>
+        <div className="campaign-card-metrics">
+          <span>{campaign.vouchersSold.toLocaleString()} sold</span>
+          <span>{stroopsToXlm(campaign.fundedAmount)} XLM funded</span>
+          <span>{verificationLabel}</span>
+        </div>
+      </button>
+      <button className="button button-ghost button-full" type="button" onClick={() => onOpenCheckout(campaign)}>
+        <Link2 size={16} aria-hidden="true" />
+        Open checkout
+      </button>
+    </article>
+  );
+}
+
+function CheckoutGenerator({ campaign, checkoutLink, copied, onCopy, onOpenCheckout }) {
+  return (
+    <section className="campaign-detail">
+      <div className="panel-title">
+        <QrCode size={18} aria-hidden="true" />
+        <div>
+          <span>QR checkout generator</span>
+          <h3>{campaign.title}</h3>
+        </div>
+      </div>
+
+      <div className="campaign-detail-grid">
+        <div className="campaign-detail-copy">
+          <div className="campaign-meta">
+            <span>{campaign.status}</span>
+            <span>{campaign.category}</span>
+            <span>{campaign.location}</span>
+          </div>
+          <p>
+            {campaign.merchant} can place this QR at checkout. Customers open a focused payment flow,
+            then receive receipt-grade proof after a contract-backed purchase.
+          </p>
+          <label>
+            Checkout link
+            <input readOnly value={checkoutLink} onFocus={(event) => event.target.select()} />
+          </label>
+          <div className="checkout-actions">
+            <button className="button button-secondary" type="button" onClick={onCopy}>
+              <Copy size={16} aria-hidden="true" />
+              {copied ? "Copied" : "Copy link"}
+            </button>
+            <button className="button button-primary" type="button" onClick={() => onOpenCheckout(campaign)}>
+              <ShoppingCart size={16} aria-hidden="true" />
+              Open checkout
+            </button>
+          </div>
+        </div>
+
+        <div className="qr-panel" aria-label={`QR checkout for ${campaign.title}`}>
+          <div className="qr-frame">
+            <QRCode value={checkoutLink} size={156} bgColor="#fffdf8" fgColor="#123d35" />
+          </div>
+          <span>{campaign.checkoutSlug}</span>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function ImpactReceipt({ address, project, campaign, preview, quantity, lastTx, checkoutStage }) {
   const txLabel = lastTx?.hash ? shortAddress(lastTx.hash) : "Awaiting tx";
   const buyer = address ? shortAddress(address) : "Walk-in customer";
   const verified = project.verified_units > 0 ? "Verified impact available" : "Pending verification";
+  const stageLabel = checkoutStage === "receipt" ? "Receipt issued" : "Quote ready";
 
   return (
-    <section className="tool-panel receipt-panel">
+    <section className={`tool-panel receipt-panel receipt-${checkoutStage}`}>
       <div className="panel-title">
         <ReceiptText size={18} aria-hidden="true" />
         <div>
@@ -175,10 +296,19 @@ function ImpactReceipt({ address, project, preview, quantity, lastTx }) {
           <h3>Impact Receipt</h3>
         </div>
       </div>
+      <div className="receipt-stage">
+        <BadgeCheck size={16} aria-hidden="true" />
+        <strong>{stageLabel}</strong>
+        <span>{campaign.contractBacked ? "Soroban escrow campaign" : "Preview campaign"}</span>
+      </div>
       <div className="receipt-paper">
         <div className="receipt-row">
           <span>Buyer</span>
           <strong>{buyer}</strong>
+        </div>
+        <div className="receipt-row">
+          <span>Merchant</span>
+          <strong>{campaign.merchant}</strong>
         </div>
         <div className="receipt-row">
           <span>Campaign</span>
@@ -196,7 +326,13 @@ function ImpactReceipt({ address, project, preview, quantity, lastTx }) {
         </div>
         <div className="receipt-row">
           <span>Transaction</span>
-          <strong>{txLabel}</strong>
+          {lastTx?.hash ? (
+            <a href={explorerTx(lastTx.hash)} target="_blank" rel="noreferrer">
+              {txLabel}
+            </a>
+          ) : (
+            <strong>{txLabel}</strong>
+          )}
         </div>
         <div className="receipt-row">
           <span>Status</span>
@@ -205,7 +341,10 @@ function ImpactReceipt({ address, project, preview, quantity, lastTx }) {
       </div>
       <div className="receipt-status">
         <BadgeCheck size={16} aria-hidden="true" />
-        <span>{quantity || 0} voucher claim is tied to escrowed funds and verified release rules.</span>
+        <span>
+          {quantity || 0} voucher claim is tied to escrowed funds, verifier release rules, and public
+          transaction proof.
+        </span>
       </div>
     </section>
   );
@@ -231,6 +370,9 @@ function TxNotice({ tx, error }) {
 
 export default function App() {
   const [activeFlow, setActiveFlow] = useState("customer");
+  const [selectedCampaignId, setSelectedCampaignId] = useState(getCheckoutProjectIdFromHash);
+  const [checkoutStage, setCheckoutStage] = useState("quote");
+  const [copiedLink, setCopiedLink] = useState("");
   const [address, setAddress] = useState("");
   const [project, setProject] = useState(normalizeProject(demoProject));
   const [holding, setHolding] = useState(normalizeHolding(demoHolding));
@@ -254,18 +396,51 @@ export default function App() {
 
   const configured = isContractConfigured();
   const selectedFlow = flowTabs.find((tab) => tab.id === activeFlow) || flowTabs[0];
-  const totalImpact = project.vouchers_sold * project.unit_per_voucher;
-  const verificationRatio = totalImpact > 0 ? Math.min(project.verified_units / totalImpact, 1) : 0;
-  const retiredRatio = project.verified_units > 0 ? Math.min(project.retired_units / project.verified_units, 1) : 0;
-  const vaultBalance = Math.max(project.funded_amount - project.withdrawn_amount, 0);
+  const selectedCampaign = useMemo(
+    () => getCampaignByProjectId(selectedCampaignId),
+    [selectedCampaignId],
+  );
+  const displayProject = useMemo(
+    () => campaignToProject(selectedCampaign, project),
+    [project, selectedCampaign],
+  );
+  const checkoutLink = useMemo(
+    () => makeCheckoutLink(selectedCampaign.projectId),
+    [selectedCampaign.projectId],
+  );
+  const totalImpact = displayProject.vouchers_sold * displayProject.unit_per_voucher;
+  const verificationRatio =
+    totalImpact > 0 ? Math.min(displayProject.verified_units / totalImpact, 1) : 0;
+  const retiredRatio =
+    displayProject.verified_units > 0
+      ? Math.min(displayProject.retired_units / displayProject.verified_units, 1)
+      : 0;
+  const vaultBalance = Math.max(displayProject.funded_amount - displayProject.withdrawn_amount, 0);
+  const canBuySelectedCampaign = configured && selectedCampaign.contractBacked;
 
   const preview = useMemo(() => {
     const qty = Math.max(0, Number(quantity || 0));
     return {
-      cost: project.price_per_voucher * qty,
-      impact: project.unit_per_voucher * qty,
+      cost: displayProject.price_per_voucher * qty,
+      impact: displayProject.unit_per_voucher * qty,
     };
-  }, [project.price_per_voucher, project.unit_per_voucher, quantity]);
+  }, [displayProject.price_per_voucher, displayProject.unit_per_voucher, quantity]);
+
+  useEffect(() => {
+    function syncCheckoutRoute() {
+      const hashProjectId = getCheckoutProjectIdFromHash();
+      const campaign = getCampaignByProjectId(hashProjectId);
+      setSelectedCampaignId(campaign.projectId);
+      if (typeof window !== "undefined" && window.location.hash.startsWith("#/checkout/")) {
+        setActiveFlow("customer");
+        setCheckoutStage("quote");
+      }
+    }
+
+    syncCheckoutRoute();
+    window.addEventListener("hashchange", syncCheckoutRoute);
+    return () => window.removeEventListener("hashchange", syncCheckoutRoute);
+  }, []);
 
   async function refresh(currentAddress = address) {
     if (!configured || !currentAddress) return;
@@ -291,7 +466,7 @@ export default function App() {
     }
   }
 
-  async function runTx(label, action) {
+  async function runTx(label, action, onSuccess) {
     setBusy(label);
     setError("");
     setLastTx(null);
@@ -299,11 +474,38 @@ export default function App() {
       if (!address) throw new Error("Connect Freighter first.");
       const result = await action();
       setLastTx(result);
+      if (onSuccess) onSuccess(result);
       await refresh(address);
     } catch (err) {
       setError(err.message);
     } finally {
       setBusy("");
+    }
+  }
+
+  function selectCampaign(projectId) {
+    setSelectedCampaignId(projectId);
+    setActiveFlow("merchant");
+    setCopiedLink("");
+  }
+
+  function openCheckout(campaign) {
+    setSelectedCampaignId(campaign.projectId);
+    setActiveFlow("customer");
+    setCheckoutStage("quote");
+    setCopiedLink("");
+    if (typeof window !== "undefined") {
+      window.location.hash = `/checkout/${campaign.projectId}`;
+    }
+  }
+
+  async function copyCheckoutLink() {
+    try {
+      await navigator.clipboard.writeText(checkoutLink);
+      setCopiedLink(checkoutLink);
+      setError("");
+    } catch {
+      setError("Copy failed. Select the checkout link and copy it manually.");
     }
   }
 
@@ -363,8 +565,8 @@ export default function App() {
             value={configured ? shortAddress(CONTRACT_ID) : "Not configured"}
             link={configured ? explorerContract(CONTRACT_ID) : undefined}
           />
-          <ProofItem label="Payment asset" value={shortAddress(project.payment_token)} />
-          <ProofItem label="Last verified report" value={project.report_hash || "Pending verification"} />
+          <ProofItem label="Payment asset" value={shortAddress(displayProject.payment_token)} />
+          <ProofItem label="Last verified report" value={displayProject.report_hash || "Pending verification"} />
         </div>
       </section>
 
@@ -385,17 +587,55 @@ export default function App() {
         ))}
       </section>
 
+      <section className="merchant-console" aria-label="Merchant campaign console">
+        <div className="console-header">
+          <div>
+            <span className="eyebrow">Merchant Console</span>
+            <h2>Campaign checkout operations</h2>
+            <p>
+              Manage local impact campaigns, generate customer checkout links, and keep contract-backed
+              proof visible before payout.
+            </p>
+          </div>
+          <span className="status-badge">
+            <Store size={16} aria-hidden="true" />
+            {demoCampaigns.length} campaigns
+          </span>
+        </div>
+
+        <div className="console-grid">
+          <div className="campaign-list" aria-label="Campaign list">
+            {demoCampaigns.map((campaign) => (
+              <CampaignCard
+                key={campaign.projectId}
+                campaign={campaign}
+                active={selectedCampaign.projectId === campaign.projectId}
+                onSelect={selectCampaign}
+                onOpenCheckout={openCheckout}
+              />
+            ))}
+          </div>
+          <CheckoutGenerator
+            campaign={selectedCampaign}
+            checkoutLink={checkoutLink}
+            copied={copiedLink === checkoutLink}
+            onCopy={copyCheckoutLink}
+            onOpenCheckout={openCheckout}
+          />
+        </div>
+      </section>
+
       <main className="dashboard-grid">
         <section className="project-surface">
           <div className="section-heading">
             <div>
-              <span className="eyebrow">Project #{PROJECT_ID}</span>
-              <h2>{project.title}</h2>
+              <span className="eyebrow">Project #{selectedCampaign.projectId}</span>
+              <h2>{displayProject.title}</h2>
               <p>{selectedFlow.detail}</p>
             </div>
             <span className="status-badge">
               <ShieldCheck size={16} aria-hidden="true" />
-              {selectedFlow.metric}
+              {selectedCampaign.contractBacked ? selectedFlow.metric : "Preview only"}
             </span>
           </div>
 
@@ -403,27 +643,27 @@ export default function App() {
             <Metric
               icon={Zap}
               label="Voucher impact"
-              value={`${project.unit_per_voucher} kWh`}
-              detail="Verified solar energy per voucher"
+              value={`${displayProject.unit_per_voucher} units`}
+              detail={displayProject.impact_unit}
             />
             <Metric
               icon={Banknote}
               label="Voucher price"
-              value={`${stroopsToXlm(project.price_per_voucher)} XLM`}
+              value={`${stroopsToXlm(displayProject.price_per_voucher)} XLM`}
               detail="Micropayment checkout add-on"
               tone="blue"
             />
             <Metric
               icon={Leaf}
               label="Vouchers sold"
-              value={project.vouchers_sold.toLocaleString()}
+              value={displayProject.vouchers_sold.toLocaleString()}
               detail="Customer-funded claims"
               tone="green"
             />
             <Metric
               icon={BadgeCheck}
               label="Verified units"
-              value={project.verified_units.toLocaleString()}
+              value={displayProject.verified_units.toLocaleString()}
               detail="Report-backed impact"
               tone="gold"
             />
@@ -433,22 +673,26 @@ export default function App() {
             <div className="ledger-header">
               <div>
                 <span className="eyebrow">Smart contract vault</span>
-                <h3>Escrowed funds release only after verification</h3>
+                <h3>
+                  {selectedCampaign.contractBacked
+                    ? "Escrowed funds release only after verification"
+                    : "Preview campaign awaits contract deployment"}
+                </h3>
               </div>
               <strong>{stroopsToXlm(vaultBalance)} XLM in vault</strong>
             </div>
             <div className="ledger-strip">
               <div>
                 <span>Total funded</span>
-                <strong>{stroopsToXlm(project.funded_amount)} XLM</strong>
+                <strong>{stroopsToXlm(displayProject.funded_amount)} XLM</strong>
               </div>
               <div>
                 <span>Withdrawn</span>
-                <strong>{stroopsToXlm(project.withdrawn_amount)} XLM</strong>
+                <strong>{stroopsToXlm(displayProject.withdrawn_amount)} XLM</strong>
               </div>
               <div>
                 <span>Verification report</span>
-                <strong>{project.report_hash || "Pending"}</strong>
+                <strong>{displayProject.report_hash || "Pending"}</strong>
               </div>
             </div>
           </div>
@@ -484,29 +728,55 @@ export default function App() {
                 <h3>Customer Checkout</h3>
               </div>
             </div>
+            <div className="checkout-context">
+              <span>{checkoutStage === "receipt" ? "Receipt state" : "Quote state"}</span>
+              <strong>{selectedCampaign.title}</strong>
+              <p>{selectedCampaign.merchant}</p>
+            </div>
             <label>
               Voucher quantity
               <input
                 type="number"
                 min="1"
                 value={quantity}
-                onChange={(event) => setQuantity(event.target.value)}
+                onChange={(event) => {
+                  setQuantity(event.target.value);
+                  setCheckoutStage("quote");
+                }}
               />
             </label>
             <div className="quote-grid">
               <span>Voucher price</span>
-              <strong>{stroopsToXlm(project.price_per_voucher)} XLM</strong>
+              <strong>{stroopsToXlm(displayProject.price_per_voucher)} XLM</strong>
               <span>Impact funded</span>
               <strong>
-                {preview.impact.toLocaleString()} {project.impact_unit}
+                {preview.impact.toLocaleString()} {displayProject.impact_unit}
               </strong>
               <span>Escrow status</span>
-              <strong>{configured ? "Vault ready" : "Demo preview"}</strong>
+              <strong>
+                {selectedCampaign.contractBacked
+                  ? configured
+                    ? "Vault ready"
+                    : "Missing contract config"
+                  : "Preview only"}
+              </strong>
             </div>
+            {!selectedCampaign.contractBacked ? (
+              <p className="panel-note">
+                This campaign previews the product workflow. Select Da Nang Solar Classroom to execute a
+                real Testnet purchase.
+              </p>
+            ) : null}
             <button
               className="button button-primary button-full"
-              disabled={!configured || busy === "buy"}
-              onClick={() => runTx("buy", () => buyVoucher(address, PROJECT_ID, Number(quantity)))}
+              disabled={!canBuySelectedCampaign || busy === "buy"}
+              onClick={() =>
+                runTx(
+                  "buy",
+                  () => buyVoucher(address, PROJECT_ID, Number(quantity)),
+                  () => setCheckoutStage("receipt"),
+                )
+              }
             >
               <ShoppingCart size={17} aria-hidden="true" />
               Buy Voucher
@@ -515,10 +785,12 @@ export default function App() {
 
           <ImpactReceipt
             address={address}
-            project={project}
+            project={displayProject}
+            campaign={selectedCampaign}
             preview={preview}
             quantity={Number(quantity || 0)}
             lastTx={lastTx}
+            checkoutStage={checkoutStage}
           />
 
           <section className="tool-panel">
@@ -689,8 +961,8 @@ export default function App() {
         <div className="context-card">
           <Building2 aria-hidden="true" size={18} />
           <span>Merchant wedge</span>
-          <strong>Vietnam cafe checkout</strong>
-          <p>Designed for retailers, campus events, and SMEs that need proof-backed green campaigns.</p>
+          <strong>Vietnam checkout pilots</strong>
+          <p>Designed for retailers, campus events, cafes, and SMEs that need proof-backed campaigns.</p>
         </div>
         <div className="context-card">
           <ShieldCheck aria-hidden="true" size={18} />

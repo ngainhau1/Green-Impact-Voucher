@@ -8,6 +8,8 @@ The core narrative:
 
 > Merchant checkout payments become verified impact vouchers. Customer funds are escrowed in a Soroban smart contract, verified impact unlocks payout, and customers receive public proof.
 
+Final goal: build a complete, production-shaped financial application. Demo materials are only evidence for judges; do not treat this repo as a lightweight one-off demo.
+
 ## Current Stack
 
 - Contract: Rust/Soroban in `contracts/impact_voucher`.
@@ -15,7 +17,7 @@ The core narrative:
 - Wallet: Freighter.
 - Network: Stellar Testnet.
 - Payment token: native XLM Stellar Asset Contract.
-- Current contract: `CDIGDTCOY3J6YHVXXBKK7NWLSLYHYV3OAPMSWHQJTPKQ4QVV4GL3`.
+- Current contract: `CDIGDTCOY3J6YHVXXBKK7NWLSLYHYV3OAPMSWHQJTPKQ4QBY4QVV4GL3`.
 
 ## Work Priorities
 
@@ -26,6 +28,7 @@ Prefer changes that improve:
 3. Escrow, verification, withdrawal, and refund-if-not-verified logic.
 4. Proof timeline for Create Campaign, Buy Voucher, Verify Impact, Retire Voucher, Withdraw Funds, and Refund.
 5. Hosted demo, pitch deck, demo video, and final submission quality.
+6. Complete product flow across merchant onboarding, customer checkout, verifier operations, receipt proof, refund path, analytics, and documentation.
 
 ## Required Checks
 
@@ -48,12 +51,15 @@ npm audit --omit=dev
 
 ## Safety And Repo Rules
 
+- Never commit, amend, tag, push, or create a pull request unless the user explicitly asks for that exact git action in the current conversation.
+- After making file changes, report changed files and verification results, then wait for the user to request commit/push.
 - Never commit secrets or `.env` files.
 - Keep `target/`, `frontend/dist/`, and `frontend/node_modules/` ignored.
 - Do not redeploy the contract without updating README, frontend environment examples, and Testnet proof links.
 - Keep all primary public content in English.
 - Keep Vietnamese documents only as secondary references.
 - Do not use placeholder or stock image URLs.
+- Do not frame or implement the work as a simple demo only; keep moving it toward a complete, usable financial product.
 
 ## UI Direction
 

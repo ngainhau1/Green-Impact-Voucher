@@ -4,7 +4,7 @@ Green Impact Voucher is a green checkout finance dApp verified on Stellar. It le
 
 ## UI Preview
 
-The React frontend presents the product as a fintech checkout workflow: Customer Checkout, Merchant Console, Verifier Vault, smart contract proof, escrowed vault balance, and impact receipt.
+The React frontend presents the product as a fintech checkout workflow: Customer Checkout, Merchant Console campaign list, scannable QR checkout links, Verifier Vault, smart contract proof, escrowed vault balance, and receipt-state customer proof.
 
 ![Green Impact Voucher fintech checkout UI](docs/screenshots/frontend-dashboard.png)
 
@@ -37,6 +37,7 @@ Stellar makes this use case practical because fees are low enough for micro-cont
 - Contract vault custody: voucher purchases transfer payment into the contract.
 - Verified release: project owner can withdraw funds only after impact is verified.
 - Customer checkout, merchant console, verifier vault, and impact receipt surfaces in the UI.
+- Merchant campaign list with scannable QR checkout links and route-like customer checkout state.
 - Voucher lifecycle: create project, buy voucher, verify impact, retire voucher, withdraw funds.
 - Typed Soroban storage keys, typed custom errors, TTL extension, and structured events.
 - Freighter-connected React dashboard with Stellar Expert transaction links.
@@ -45,12 +46,13 @@ Stellar makes this use case practical because fees are low enough for micro-cont
 ## User-Facing Transaction Flow
 
 1. Merchant or project owner launches a campaign such as `Da Nang Solar Classroom`.
-2. Customer buys a green checkout voucher worth `0.10 XLM`.
-3. The contract transfers payment from the customer into the vault.
-4. The UI shows an impact receipt with buyer, campaign, impact units, paid amount, transaction, and verification status.
-5. Owner/admin verifies delivered impact with a report hash.
-6. Customer retires the voucher as public proof of funded impact.
-7. Project owner withdraws verified funds from the vault.
+2. Merchant shares a QR/link checkout for the campaign.
+3. Customer buys a green checkout voucher worth `0.10 XLM`.
+4. The contract transfers payment from the customer into the vault.
+5. The UI moves from quote state to receipt state with buyer, campaign, impact units, paid amount, transaction, and verification status.
+6. Owner/admin verifies delivered impact with a report hash.
+7. Customer retires the voucher as public proof of funded impact.
+8. Project owner withdraws verified funds from the vault.
 
 ## Contract Detail
 

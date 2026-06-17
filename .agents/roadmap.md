@@ -4,6 +4,8 @@
 
 Turn Green Impact Voucher into a merchant checkout finance product where customers pay through a QR/link checkout, funds are escrowed on Stellar, verified impact unlocks payout, and unverified campaigns can support refunds.
 
+This roadmap targets a complete, production-shaped financial application. The hackathon demo should prove the product path, but the implementation standard must not stop at a simple demo.
+
 ## Week 1 - Checkout Product Layer
 
 - Add Merchant Console campaign list and campaign detail.

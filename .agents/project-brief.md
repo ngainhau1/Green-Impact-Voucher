@@ -12,6 +12,10 @@ Payment & Consumer Applications
 
 Green Impact Voucher is a green checkout finance application on Stellar. It lets local merchants turn customer checkout payments into verified impact vouchers with smart contract vault custody, verification, and public receipts.
 
+## Final Product Goal
+
+The goal is a complete, production-shaped financial application, not a simple demo. The app should eventually cover merchant onboarding, campaign setup, QR/link checkout, Stellar escrow, verifier operations, public receipts, refund protection, analytics, hosted deployment, pitch deck, and demo video as one coherent product.
+
 ## Problem Statement
 
 Local merchants want to run credible green campaigns at checkout, but current donation flows rely on QR transfers, donation boxes, or private reports. Customers cannot verify where their money went or whether the promised impact was delivered. Merchants also lack a trusted way to turn sustainability into a repeatable customer transaction and public proof.
@@ -37,7 +41,7 @@ When a customer buys a voucher, the payment is held in a Soroban smart contract 
 
 ## Current Testnet Proof
 
-- Contract ID: `CDIGDTCOY3J6YHVXXBKK7NWLSLYHYV3OAPMSWHQJTPKQ4QVV4GL3`
+- Contract ID: `CDIGDTCOY3J6YHVXXBKK7NWLSLYHYV3OAPMSWHQJTPKQ4QBY4QVV4GL3`
 - Payment token: `CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQVU2HHGCYSC`
 - Buy voucher tx: `472998d13bce42752cd682ae63b074f21348c6ffec719a23de79348398f51702`
 - Verify project tx: `bfe5b3cfa4a2b5e52d236ab20c801cefee685880dfc5a837f2fc24927a65952c`
@@ -51,3 +55,4 @@ When a customer buys a voucher, the payment is held in a Soroban smart contract 
 - Merchant value and local economy relevance.
 - Customer trust through receipt-grade proof.
 - Strong demo, README, pitch deck, and Testnet evidence.
+- Complete product narrative instead of a narrow proof-of-concept demo.

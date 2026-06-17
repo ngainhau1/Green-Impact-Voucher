@@ -6,13 +6,15 @@ Green Impact Voucher is a green checkout finance application verified on Stellar
 
 North Star: merchants create QR/link checkout campaigns, customers buy small impact vouchers, funds enter a Soroban escrow vault, impact verification unlocks payout, customers receive public receipts, and unverified campaigns can support refund protection.
 
+Final goal: build a complete, production-shaped financial application. Treat hackathon demo assets as proof of the product, not as permission to ship a thin or disposable demo.
+
 ## Current Product State
 
 - Smart contract: Rust/Soroban in `contracts/impact_voucher`.
 - Frontend: React/Vite in `frontend`.
 - Primary UI language: English.
 - Payment token: native XLM Stellar Asset Contract on Stellar Testnet.
-- Current contract ID: `CDIGDTCOY3J6YHVXXBKK7NWLSLYHYV3OAPMSWHQJTPKQ4QVV4GL3`.
+- Current contract ID: `CDIGDTCOY3J6YHVXXBKK7NWLSLYHYV3OAPMSWHQJTPKQ4QBY4QVV4GL3`.
 - Current frontend surfaces: Customer Checkout, Merchant Console, Verifier Vault, vault ledger, and impact receipt.
 
 ## Winning Criteria
@@ -24,6 +26,7 @@ Prioritize work that strengthens these judging signals:
 - Clear merchant value: campaign launch, QR checkout, proof reporting, and verified payout.
 - Customer trust: public receipt, transaction proof, refund path when impact is not verified.
 - Professional fintech UI and demo readiness.
+- End-to-end product completeness: merchant onboarding, customer checkout, escrow, verification, receipt, refund path, analytics, documentation, hosted app, pitch deck, and demo video should tell one complete product story.
 
 ## Required Commands
 
@@ -46,10 +49,13 @@ npm audit --omit=dev
 
 ## Non-Negotiables
 
+- Never commit, amend, tag, push, or create a pull request unless the user explicitly asks for that exact git action in the current conversation.
+- After making file changes, report changed files and verification results, then wait for the user to request commit/push.
 - Do not commit secrets, private keys, `.env`, `target/`, `frontend/dist/`, or `frontend/node_modules`.
 - Keep `.env` ignored. Only commit `.env.example`.
 - Do not redeploy the contract without updating README, screenshots if needed, frontend `.env.example`, and docs with the new contract ID and transaction proof.
 - Do not replace the financial thesis with broad climate storytelling.
+- Do not describe, design, or implement the project as a simple demo only. Every feature should move the repo toward a complete, usable financial application.
 - Do not add stock images or placeholder image URLs.
 - Keep public-facing app, README, pitch deck, and submission content English-first. Vietnamese can remain as a secondary explanation.
 
