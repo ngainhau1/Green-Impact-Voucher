@@ -1,0 +1,25 @@
+{
+  "name": "green-impact-voucher-backend",
+  "version": "0.1.0",
+  "description": "Product API layer for Green Impact Voucher checkout sessions, receipts, and merchant dashboard data.",
+  "main": "src/server.js",
+  "scripts": {
+    "build": "node scripts/check-syntax.js",
+    "dev": "node --watch src/server.js",
+    "lint": "node scripts/check-syntax.js",
+    "start": "node src/server.js",
+    "test": "node --test"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "MIT",
+  "type": "module",
+  "dependencies": {
+    "@fastify/cors": "^11.2.0",
+    "@fastify/helmet": "^13.0.2",
+    "@fastify/rate-limit": "^11.0.0",
+    "@stellar/stellar-sdk": "^16.0.0",
+    "fastify": "^5.8.5",
+    "zod": "^4.4.3"
+  }
+}

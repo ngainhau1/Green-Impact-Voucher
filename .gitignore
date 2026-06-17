@@ -8,3 +8,4 @@ dist/
 *.optimized.wasm
 docs/screenshots/*.tmp.*
 frontend/.vite/
+backend/.data/

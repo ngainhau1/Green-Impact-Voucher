@@ -4,7 +4,7 @@ Green Impact Voucher is a green checkout finance dApp verified on Stellar. It le
 
 ## UI Preview
 
-The React frontend presents the product as a fintech checkout workflow: Customer Checkout, Merchant Console campaign list, scannable QR checkout links, Verifier Vault, smart contract proof, escrowed vault balance, and receipt-state customer proof.
+The React frontend presents the product as a fintech checkout workflow backed by a product API: Customer Checkout, Merchant Console campaign list, scannable QR checkout sessions, Verifier Vault, smart contract proof, escrowed vault balance, and receipt-state customer proof.
 
 ![Green Impact Voucher fintech checkout UI](docs/screenshots/frontend-dashboard.png)
 
@@ -34,6 +34,7 @@ Stellar makes this use case practical because fees are low enough for micro-cont
 ## Key Features
 
 - Real payment flow using the native XLM Stellar Asset Contract on Testnet.
+- Backend product API for merchant campaigns, checkout sessions, receipt metadata, dashboard metrics, and indexed transaction references.
 - Contract vault custody: voucher purchases transfer payment into the contract.
 - Verified release: project owner can withdraw funds only after impact is verified.
 - Customer checkout, merchant console, verifier vault, and impact receipt surfaces in the UI.
@@ -85,6 +86,7 @@ The `buy_voucher` transaction transfers `2,000,000` stroops from the buyer to th
 - Smart contract: Rust, Soroban SDK v26
 - Blockchain: Stellar Testnet
 - Frontend: React, Vite, vanilla CSS
+- Backend: Node.js, Fastify, Zod validation, local JSON storage
 - Wallet: Freighter via `@stellar/freighter-api`
 - SDK: `@stellar/stellar-sdk`
 
@@ -101,6 +103,10 @@ GreenImpactVoucher/
 |-- frontend/
 |   |-- public/
 |   `-- src/
+|-- backend/
+|   |-- src/
+|   |-- test/
+|   `-- .env.example
 |-- docs/
 |   |-- screenshots/
 |   `-- demo-script.md
@@ -150,6 +156,14 @@ cargo test
 stellar contract build --package impact-voucher
 ```
 
+Run backend:
+
+```bash
+cd backend
+npm install
+npm run dev
+```
+
 Run frontend:
 
 ```bash
@@ -163,6 +177,7 @@ Copy `frontend/.env.example` to `frontend/.env` for local frontend contract call
 ```text
 VITE_CONTRACT_ID=CDIGDTCOY3J6YHVXXBKK7NWLSLYHYV3OAPMSWHQJTPKQ4QBY4QVV4GL3
 VITE_PAYMENT_TOKEN_ID=CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQVU2HHGCYSC
+VITE_API_BASE_URL=http://127.0.0.1:8787
 ```
 
 Quick commands:
@@ -170,6 +185,9 @@ Quick commands:
 ```bash
 make test
 make build-contract
+make backend-build
+make backend-test
+make backend-lint
 make frontend-build
 make frontend-lint
 make verify
@@ -236,11 +254,15 @@ stellar contract invoke \
 - `cargo test`: 12 tests passing.
 - `stellar contract build --package impact-voucher`: success.
 - WASM size: 13,403 bytes, under the 64KB bootcamp guideline.
+- `cd backend && npm run build`: success.
+- `cd backend && npm test`: success.
+- `cd backend && npm run lint`: success.
+- `cd backend && npm audit --omit=dev`: 0 vulnerabilities.
 - `npm run build`: success.
 - `npm run lint`: success.
 - `npm audit --omit=dev`: 0 vulnerabilities.
 - No private keys are stored in this repository.
-- `.env`, `target`, `frontend/dist`, and `frontend/node_modules` are ignored.
+- `.env`, `target`, `frontend/dist`, `frontend/node_modules`, and `backend/.data` are ignored.
 
 ## Security Notes
 
@@ -250,6 +272,12 @@ stellar contract invoke \
 - Persistent entries and instance storage extend TTL after writes.
 - Contract events are emitted for project creation, purchase, verification, retirement, withdrawal, and admin transfer.
 - Arithmetic uses checked operations for funded amount, voucher count, impact units, and withdrawals.
+
+## Backend Product API
+
+The backend is a product layer for checkout sessions, campaign data, receipt metadata, merchant dashboard metrics, and indexed transaction references. It does not custody funds, hold private keys, sign transactions, or override Soroban state.
+
+See [docs/backend-api.md](docs/backend-api.md) for endpoint details.
 
 ## References Used
 
@@ -269,6 +297,7 @@ stellar contract invoke \
 - Judging map: [docs/judging-map.md](docs/judging-map.md)
 - Vietnamese pitch: [docs/submission-vi.md](docs/submission-vi.md)
 - Demo script: [docs/demo-script.md](docs/demo-script.md)
+- Backend API: [docs/backend-api.md](docs/backend-api.md)
 - Demo video outline: [docs/demo-video-outline.md](docs/demo-video-outline.md)
 - Final submission checklist: [docs/final-submission-checklist.md](docs/final-submission-checklist.md)
 - Frontend screenshot: [docs/screenshots/frontend-dashboard.png](docs/screenshots/frontend-dashboard.png)

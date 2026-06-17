@@ -11,6 +11,8 @@ Runtime discovery still uses the official locations:
 
 Use this directory to keep goals, roadmap, judging criteria, and reusable briefs aligned across tools.
 
+Locked big UI decision: **A+C: Satellite Proof + Solar Classroom Journey**. Treat this as the approved major frontend direction before future UI implementation. It should make the product more memorable through nature-rich proof storytelling while preserving checkout, escrow, verification, receipt, refund protection, and Stellar transaction clarity.
+
 ## Files
 
 - `project-brief.md`: product thesis, problem, solution, users, Stellar integration, and current proof.

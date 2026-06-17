@@ -6,6 +6,8 @@ Turn Green Impact Voucher into a merchant checkout finance product where custome
 
 This roadmap targets a complete, production-shaped financial application. The hackathon demo should prove the product path, but the implementation standard must not stop at a simple demo.
 
+Locked big UI direction: **A+C: Satellite Proof + Solar Classroom Journey**. Future UI work should combine immersive nature visuals with transaction proof, using satellite-style verification, solar classroom storytelling, QR checkout, escrow status, and public receipts as one product journey.
+
 ## Week 1 - Checkout Product Layer
 
 - Add Merchant Console campaign list and campaign detail.
@@ -23,11 +25,15 @@ This roadmap targets a complete, production-shaped financial application. The ha
 - Ensure withdrawals account for refunded vouchers.
 - Redeploy Testnet only after tests pass, then update README, docs, and frontend `.env.example`.
 
-## Week 3 - Public Proof And Hosted Demo
+## Week 3 - Public Proof, Big UI, And Hosted Demo
 
 - Add public receipt page/state with buyer, campaign, impact, paid amount, tx hash, verification/refund state, and Stellar Expert link.
 - Add proof timeline: Create Campaign, Buy Voucher, Verify Impact, Retire Voucher, Withdraw Funds, Refund.
 - Add richer demo seed data for merchant, customer, verifier, and report hash.
+- Rebuild the primary visual direction around A+C: satellite proof surfaces plus solar classroom journey.
+- Add local visual assets only: no stock URLs, no remote placeholders, no decorative assets that do not support the product story.
+- Add special effects that support proof comprehension: parallax nature layers, satellite scan/proof state, receipt reveal, QR proof pulse, and timeline transitions.
+- Add reduced-motion support and verify the app remains usable without animation.
 - Deploy frontend to Vercel or Netlify.
 - Update README with hosted URL and fresh screenshot.
 
@@ -45,9 +51,10 @@ This roadmap targets a complete, production-shaped financial application. The ha
 2. Public receipt page.
 3. Refund-if-not-verified contract logic.
 4. Proof timeline.
-5. Hosted demo.
-6. Pitch deck.
-7. Demo video.
-8. Merchant analytics.
-9. Local asset/stable asset explanation.
-10. Event indexing/backend.
+5. A+C big UI refresh.
+6. Hosted demo.
+7. Pitch deck.
+8. Demo video.
+9. Merchant analytics.
+10. Local asset/stable asset explanation.
+11. Event indexing/backend.

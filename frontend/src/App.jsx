@@ -20,6 +20,12 @@ import {
   Zap,
 } from "lucide-react";
 import {
+  createCheckoutSession,
+  fetchCampaigns,
+  fetchCheckoutSession,
+  fetchMerchantDashboard,
+} from "./lib/api";
+import {
   buyVoucher,
   connectWallet,
   CONTRACT_ID,
@@ -107,18 +113,25 @@ function normalizeHolding(holding) {
   };
 }
 
-function getContractCampaign() {
-  return demoCampaigns.find((campaign) => campaign.contractBacked) || demoCampaigns[0];
+function getContractCampaign(campaigns = demoCampaigns) {
+  return campaigns.find((campaign) => campaign.contractBacked) || campaigns[0] || demoCampaigns[0];
 }
 
-function getCampaignByProjectId(projectId) {
-  return demoCampaigns.find((campaign) => campaign.projectId === Number(projectId)) || getContractCampaign();
+function getCampaignByProjectId(projectId, campaigns = demoCampaigns) {
+  return campaigns.find((campaign) => campaign.projectId === Number(projectId)) || getContractCampaign(campaigns);
+}
+
+function getCheckoutRouteFromHash() {
+  if (typeof window === "undefined") return { projectId: PROJECT_ID, sessionId: "" };
+  const match = window.location.hash.match(/^#\/checkout\/(\d+)(?:\?session=([^&]+))?/);
+  return {
+    projectId: match ? Number(match[1]) : PROJECT_ID,
+    sessionId: match?.[2] ? decodeURIComponent(match[2]) : "",
+  };
 }
 
 function getCheckoutProjectIdFromHash() {
-  if (typeof window === "undefined") return PROJECT_ID;
-  const match = window.location.hash.match(/^#\/checkout\/(\d+)$/);
-  return match ? Number(match[1]) : PROJECT_ID;
+  return getCheckoutRouteFromHash().projectId;
 }
 
 function makeCheckoutLink(projectId) {
@@ -232,7 +245,7 @@ function CampaignCard({ campaign, active, onSelect, onOpenCheckout }) {
   );
 }
 
-function CheckoutGenerator({ campaign, checkoutLink, copied, onCopy, onOpenCheckout }) {
+function CheckoutGenerator({ campaign, checkoutLink, checkoutSession, copied, onCopy, onOpenCheckout }) {
   return (
     <section className="campaign-detail">
       <div className="panel-title">
@@ -250,6 +263,13 @@ function CheckoutGenerator({ campaign, checkoutLink, copied, onCopy, onOpenCheck
             <span>{campaign.category}</span>
             <span>{campaign.location}</span>
           </div>
+          {checkoutSession?.projectId === campaign.projectId ? (
+            <div className="session-chip">
+              <span>Session</span>
+              <strong>{checkoutSession.id}</strong>
+              <span>Expires {new Date(checkoutSession.expiresAt).toLocaleTimeString()}</span>
+            </div>
+          ) : null}
           <p>
             {campaign.merchant} can place this QR at checkout. Customers open a focused payment flow,
             then receive receipt-grade proof after a contract-backed purchase.
@@ -370,6 +390,12 @@ function TxNotice({ tx, error }) {
 
 export default function App() {
   const [activeFlow, setActiveFlow] = useState("customer");
+  const [campaigns, setCampaigns] = useState(demoCampaigns);
+  const [apiStatus, setApiStatus] = useState("loading");
+  const [apiError, setApiError] = useState("");
+  const [merchantDashboard, setMerchantDashboard] = useState(null);
+  const [checkoutSession, setCheckoutSession] = useState(null);
+  const [routeSessionId, setRouteSessionId] = useState(getCheckoutRouteFromHash().sessionId);
   const [selectedCampaignId, setSelectedCampaignId] = useState(getCheckoutProjectIdFromHash);
   const [checkoutStage, setCheckoutStage] = useState("quote");
   const [copiedLink, setCopiedLink] = useState("");
@@ -397,16 +423,16 @@ export default function App() {
   const configured = isContractConfigured();
   const selectedFlow = flowTabs.find((tab) => tab.id === activeFlow) || flowTabs[0];
   const selectedCampaign = useMemo(
-    () => getCampaignByProjectId(selectedCampaignId),
-    [selectedCampaignId],
+    () => getCampaignByProjectId(selectedCampaignId, campaigns),
+    [campaigns, selectedCampaignId],
   );
   const displayProject = useMemo(
     () => campaignToProject(selectedCampaign, project),
     [project, selectedCampaign],
   );
   const checkoutLink = useMemo(
-    () => makeCheckoutLink(selectedCampaign.projectId),
-    [selectedCampaign.projectId],
+    () => checkoutSession?.checkoutUrl || makeCheckoutLink(selectedCampaign.projectId),
+    [checkoutSession?.checkoutUrl, selectedCampaign.projectId],
   );
   const totalImpact = displayProject.vouchers_sold * displayProject.unit_per_voucher;
   const verificationRatio =
@@ -427,10 +453,40 @@ export default function App() {
   }, [displayProject.price_per_voucher, displayProject.unit_per_voucher, quantity]);
 
   useEffect(() => {
+    let cancelled = false;
+
+    async function loadProductLayer() {
+      try {
+        const [campaignResult, dashboardResult] = await Promise.all([
+          fetchCampaigns(),
+          fetchMerchantDashboard(),
+        ]);
+        if (cancelled) return;
+        setCampaigns(campaignResult.data);
+        setMerchantDashboard(dashboardResult.data);
+        setApiStatus("connected");
+        setApiError("");
+      } catch (err) {
+        if (cancelled) return;
+        setCampaigns(demoCampaigns);
+        setMerchantDashboard(null);
+        setApiStatus("fallback");
+        setApiError(err.message || "Product API unavailable. Using local seed data.");
+      }
+    }
+
+    loadProductLayer();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  useEffect(() => {
     function syncCheckoutRoute() {
-      const hashProjectId = getCheckoutProjectIdFromHash();
-      const campaign = getCampaignByProjectId(hashProjectId);
+      const route = getCheckoutRouteFromHash();
+      const campaign = getCampaignByProjectId(route.projectId, campaigns);
       setSelectedCampaignId(campaign.projectId);
+      setRouteSessionId(route.sessionId);
       if (typeof window !== "undefined" && window.location.hash.startsWith("#/checkout/")) {
         setActiveFlow("customer");
         setCheckoutStage("quote");
@@ -440,7 +496,59 @@ export default function App() {
     syncCheckoutRoute();
     window.addEventListener("hashchange", syncCheckoutRoute);
     return () => window.removeEventListener("hashchange", syncCheckoutRoute);
-  }, []);
+  }, [campaigns]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function resolveRouteSession() {
+      if (!routeSessionId || apiStatus === "fallback") return;
+      try {
+        const result = await fetchCheckoutSession(routeSessionId);
+        if (cancelled) return;
+        setCheckoutSession(result.data);
+        setApiStatus("connected");
+        setApiError("");
+      } catch (err) {
+        if (cancelled) return;
+        setCheckoutSession(null);
+        setApiError(err.message || "Checkout session could not be resolved.");
+      }
+    }
+
+    resolveRouteSession();
+    return () => {
+      cancelled = true;
+    };
+  }, [apiStatus, routeSessionId]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function prepareCheckoutSession() {
+      if (apiStatus !== "connected" || routeSessionId) return;
+      try {
+        const result = await createCheckoutSession({
+          projectId: selectedCampaign.projectId,
+          quantity: Math.max(1, Number(quantity || 1)),
+          buyerAddress: address || undefined,
+        });
+        if (cancelled) return;
+        setCheckoutSession(result.data);
+        setApiError("");
+      } catch (err) {
+        if (cancelled) return;
+        setCheckoutSession(null);
+        setApiStatus("fallback");
+        setApiError(err.message || "Could not create checkout session. Using frontend checkout link.");
+      }
+    }
+
+    prepareCheckoutSession();
+    return () => {
+      cancelled = true;
+    };
+  }, [address, apiStatus, quantity, routeSessionId, selectedCampaign.projectId]);
 
   async function refresh(currentAddress = address) {
     if (!configured || !currentAddress) return;
@@ -487,15 +595,37 @@ export default function App() {
     setSelectedCampaignId(projectId);
     setActiveFlow("merchant");
     setCopiedLink("");
+    setCheckoutSession(null);
+    setRouteSessionId("");
   }
 
-  function openCheckout(campaign) {
+  async function openCheckout(campaign) {
     setSelectedCampaignId(campaign.projectId);
     setActiveFlow("customer");
     setCheckoutStage("quote");
     setCopiedLink("");
+    setRouteSessionId("");
+
+    let targetLink = checkoutSession?.projectId === campaign.projectId ? checkoutSession.checkoutUrl : "";
+    if (!targetLink && apiStatus === "connected") {
+      try {
+        const result = await createCheckoutSession({
+          projectId: campaign.projectId,
+          quantity: Math.max(1, Number(quantity || 1)),
+          buyerAddress: address || undefined,
+        });
+        setCheckoutSession(result.data);
+        targetLink = result.data.checkoutUrl;
+        setApiError("");
+      } catch (err) {
+        setApiStatus("fallback");
+        setApiError(err.message || "Could not create checkout session. Using frontend checkout link.");
+      }
+    }
+
     if (typeof window !== "undefined") {
-      window.location.hash = `/checkout/${campaign.projectId}`;
+      const hash = targetLink ? new URL(targetLink).hash : `#/checkout/${campaign.projectId}`;
+      window.location.hash = hash.replace(/^#/, "");
     }
   }
 
@@ -599,13 +729,33 @@ export default function App() {
           </div>
           <span className="status-badge">
             <Store size={16} aria-hidden="true" />
-            {demoCampaigns.length} campaigns
+            {campaigns.length} campaigns
           </span>
         </div>
 
+        <div className="backend-strip" aria-label="Backend product API status">
+          <div>
+            <span>Product API</span>
+            <strong>{apiStatus === "connected" ? "Connected" : "Seed fallback"}</strong>
+          </div>
+          <div>
+            <span>Checkout sessions</span>
+            <strong>{merchantDashboard?.checkoutSessions ?? 0}</strong>
+          </div>
+          <div>
+            <span>Indexed proof</span>
+            <strong>{merchantDashboard?.indexedTransactionCount ?? 4} tx refs</strong>
+          </div>
+          <div>
+            <span>Escrow balance</span>
+            <strong>{stroopsToXlm(merchantDashboard?.totals?.escrowBalance ?? 0)} XLM</strong>
+          </div>
+        </div>
+        {apiError ? <p className="api-note">{apiError}</p> : null}
+
         <div className="console-grid">
           <div className="campaign-list" aria-label="Campaign list">
-            {demoCampaigns.map((campaign) => (
+            {campaigns.map((campaign) => (
               <CampaignCard
                 key={campaign.projectId}
                 campaign={campaign}
@@ -618,6 +768,7 @@ export default function App() {
           <CheckoutGenerator
             campaign={selectedCampaign}
             checkoutLink={checkoutLink}
+            checkoutSession={checkoutSession}
             copied={copiedLink === checkoutLink}
             onCopy={copyCheckoutLink}
             onOpenCheckout={openCheckout}

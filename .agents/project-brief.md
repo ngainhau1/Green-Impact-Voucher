@@ -16,6 +16,15 @@ Green Impact Voucher is a green checkout finance application on Stellar. It lets
 
 The goal is a complete, production-shaped financial application, not a simple demo. The app should eventually cover merchant onboarding, campaign setup, QR/link checkout, Stellar escrow, verifier operations, public receipts, refund protection, analytics, hosted deployment, pitch deck, and demo video as one coherent product.
 
+## Locked Big UI Direction
+
+The chosen big UI direction is **A+C: Satellite Proof + Solar Classroom Journey**.
+
+- **A - Satellite Proof:** use satellite-inspired proof surfaces, scan states, location evidence, report hashes, and public verification timelines to make impact inspection feel credible.
+- **C - Solar Classroom Journey:** use solar classroom/customer-impact storytelling to make each checkout voucher feel concrete, local, and emotionally memorable.
+- This direction must remain a financial application: visual assets and effects should reinforce checkout, escrow, verification, receipt, refund protection, and Stellar proof.
+- Do not switch to another UI concept unless the user explicitly changes the decision.
+
 ## Problem Statement
 
 Local merchants want to run credible green campaigns at checkout, but current donation flows rely on QR transfers, donation boxes, or private reports. Customers cannot verify where their money went or whether the promised impact was delivered. Merchants also lack a trusted way to turn sustainability into a repeatable customer transaction and public proof.
@@ -23,6 +32,8 @@ Local merchants want to run credible green campaigns at checkout, but current do
 ## Proposed Solution
 
 When a customer buys a voucher, the payment is held in a Soroban smart contract vault. A verifier records delivered impact with a report hash, the customer receives an on-chain impact receipt, and the project owner can withdraw funds only after verification. The roadmap adds QR checkout, public receipt pages, proof timeline, and refund protection for unverified campaigns.
+
+The frontend should present that solution through the A+C journey: a customer starts from a merchant QR/link checkout, sees local solar-classroom impact, pays into escrow, follows satellite-style verification proof, and receives a receipt that links back to Stellar evidence.
 
 ## Target Users
 
@@ -38,6 +49,7 @@ When a customer buys a voucher, the payment is held in a Soroban smart contract 
 - Native XLM Stellar Asset Contract as the current payment token.
 - Freighter wallet for customer/admin signing.
 - Stellar Expert links for contract and transaction proof.
+- Backend product API for campaigns, checkout sessions, receipt metadata, merchant dashboard metrics, and indexed transaction references; it does not custody funds or sign transactions.
 
 ## Current Testnet Proof
 
@@ -56,3 +68,4 @@ When a customer buys a voucher, the payment is held in a Soroban smart contract 
 - Customer trust through receipt-grade proof.
 - Strong demo, README, pitch deck, and Testnet evidence.
 - Complete product narrative instead of a narrow proof-of-concept demo.
+- Premium A+C UI direction that makes the product memorable without losing transaction clarity.

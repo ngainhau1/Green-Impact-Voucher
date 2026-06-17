@@ -4,6 +4,8 @@
 
 Build Green Impact Voucher as a complete, production-shaped financial application. The hackathon demo is only the proof surface; the repo should move toward a real merchant checkout product with Stellar escrow, verification, receipts, refund protection, backend product services, hosted deployment, and submission assets.
 
+Locked big UI direction: **A+C: Satellite Proof + Solar Classroom Journey**. Treat this as the approved frontend concept for future major UI work: nature-rich visuals must reinforce checkout, escrow, verification, receipt, refund protection, and Stellar proof.
+
 ## Phase 0 - Alignment And Baseline
 
 Purpose: lock the product thesis, verify the current repo state, and protect against uncontrolled scope drift.
@@ -13,6 +15,7 @@ Deliverables:
 - Confirm the primary track is `Payment & Consumer Applications`.
 - Keep public-facing product language English-first.
 - Keep the final goal framed as a complete financial app, not a simple demo.
+- Keep the A+C big UI decision locked unless the user explicitly changes it.
 - Keep the no-autonomous-git rule active: no commit, amend, tag, push, or PR unless explicitly requested.
 - Confirm current Testnet contract ID, Stellar Expert links, README proof, frontend env examples, and screenshots are not stale.
 
@@ -143,7 +146,7 @@ Exit criteria:
 - Consumer refund protection is real contract logic, not UI copy.
 - Redeployed contract proof is fully documented.
 
-## Phase 4 - Public Proof Timeline And Hosted Product
+## Phase 4 - Public Proof Timeline, A+C Big UI, And Hosted Product
 
 Purpose: make the financial proof easy to inspect without requiring judges to read code.
 
@@ -151,6 +154,10 @@ Deliverables:
 
 - Public receipt page/state with buyer, campaign, paid amount, impact, voucher ID, transaction hash, verification/refund status, and Stellar Expert link.
 - Proof timeline: Create Campaign, Buy Voucher, Verify Impact, Retire Voucher, Withdraw Funds, Refund.
+- Full A+C visual refresh: Satellite Proof + Solar Classroom Journey.
+- Local asset pack for nature/proof visuals in `frontend/public/assets/`, with no stock URLs or remote placeholders.
+- Motion system for parallax nature layers, satellite scan/proof states, QR proof pulse, receipt reveal, and proof timeline transitions.
+- Reduced-motion fallback that keeps the app readable and fully usable.
 - Rich demo seed data for merchant, customer, verifier, report hash, and receipt history.
 - Hosted frontend on Vercel or Netlify.
 - README updated with hosted URL and fresh screenshot.
@@ -160,6 +167,8 @@ Validation:
 - Hosted app loads without local-only assumptions.
 - Receipt proof links resolve.
 - Mobile public receipt view has no overflow.
+- A+C visuals support the financial proof journey and do not hide CTAs, contract IDs, payment states, or receipt details.
+- Reduced-motion mode is supported for major animation/effect layers.
 - README setup and hosted/demo paths match current behavior.
 
 Exit criteria:
@@ -216,6 +225,6 @@ Exit criteria:
 1. Execute Phase 1 first because it improves judge comprehension without requiring a contract redeploy.
 2. Add Phase 2 backend only after the frontend checkout flow is clear.
 3. Implement Phase 3 refund logic after backend/session requirements are clear enough to avoid contract churn.
-4. Complete Phase 4 hosted proof before final pitch/video work.
+4. Complete Phase 4 hosted proof and A+C big UI before final pitch/video work.
 5. Use Phase 5 only after the core payment, receipt, refund, and hosted proof flows are stable.
 6. Finish Phase 6 last, after all links, screenshots, contract IDs, and demo paths are current.

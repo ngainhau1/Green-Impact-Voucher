@@ -8,9 +8,12 @@ North Star: merchants create QR/link checkout campaigns, customers buy small imp
 
 Final goal: build a complete, production-shaped financial application. Treat hackathon demo assets as proof of the product, not as permission to ship a thin or disposable demo.
 
+Locked big UI decision: use **A+C**, meaning **Satellite Proof + Solar Classroom Journey**. The product should combine nature-rich visual storytelling with financial proof: satellite-style impact evidence, solar classroom imagery, QR checkout, escrow state, verification timeline, and receipt-grade on-chain proof. Do not reopen the big UI direction unless the user explicitly changes this decision.
+
 ## Current Product State
 
 - Smart contract: Rust/Soroban in `contracts/impact_voucher`.
+- Backend: Node.js/Fastify product API in `backend`.
 - Frontend: React/Vite in `frontend`.
 - Primary UI language: English.
 - Payment token: native XLM Stellar Asset Contract on Stellar Testnet.
@@ -41,6 +44,11 @@ Focused checks:
 ```powershell
 cargo test
 stellar contract build --package impact-voucher
+cd backend
+npm run build
+npm test
+npm run lint
+npm audit --omit=dev
 cd frontend
 npm run build
 npm run lint
@@ -56,6 +64,7 @@ npm audit --omit=dev
 - Do not redeploy the contract without updating README, screenshots if needed, frontend `.env.example`, and docs with the new contract ID and transaction proof.
 - Do not replace the financial thesis with broad climate storytelling.
 - Do not describe, design, or implement the project as a simple demo only. Every feature should move the repo toward a complete, usable financial application.
+- Do not replace the locked A+C visual direction with another theme unless the user explicitly requests a new direction.
 - Do not add stock images or placeholder image URLs.
 - Keep public-facing app, README, pitch deck, and submission content English-first. Vietnamese can remain as a secondary explanation.
 
@@ -69,7 +78,11 @@ npm audit --omit=dev
 
 ## Frontend Rules
 
-- Use a restrained fintech trust style: clear hierarchy, proof strips, ledger panels, receipt surfaces, and compact metrics.
+- Use the locked A+C direction: Satellite Proof + Solar Classroom Journey.
+- Keep the app financially credible: nature visuals must support checkout, escrow, verification, receipt, and proof timeline, not become generic environmental decoration.
+- Use a premium nature-fintech style: immersive real/local visual assets, satellite proof surfaces, solar impact journey sections, ledger panels, receipt surfaces, and compact metrics.
+- Add special effects only when they clarify the product story: parallax nature layers, satellite scan/proof motion, receipt reveal, QR proof pulse, and timeline transitions.
+- Respect accessibility and performance: provide reduced-motion behavior, avoid text overflow, and keep core transaction actions usable without motion.
 - Keep cards at 8px radius or less.
 - Use existing `lucide-react` icons; do not add icon dependencies unless there is a strong reason.
 - After UI changes, verify desktop and mobile layouts for no horizontal overflow.
