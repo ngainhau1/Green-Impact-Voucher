@@ -53,12 +53,13 @@ The frontend should present that solution through the A+C journey: a customer st
 
 ## Current Testnet Proof
 
-- Contract ID: `CDIGDTCOY3J6YHVXXBKK7NWLSLYHYV3OAPMSWHQJTPKQ4QBY4QVV4GL3`
+- Contract ID: `CBN5FTEU5CYVGOJCP5D567ALVH2VQ4IHZIU7WG5CDZ7RM3QFXNTW2R4J`
 - Payment token: `CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQVU2HHGCYSC`
-- Buy voucher tx: `472998d13bce42752cd682ae63b074f21348c6ffec719a23de79348398f51702`
-- Verify project tx: `bfe5b3cfa4a2b5e52d236ab20c801cefee685880dfc5a837f2fc24927a65952c`
-- Retire voucher tx: `8f2a42d3a58291cf19d1b3b39d536fc2e490a3a87c24d5d8ac0163aa0420744b`
-- Withdraw funds tx: `cea81936292151d40393a9eba007f71e24408e826fdf96ff4363c811094ca3b5`
+- Buy voucher tx: `ce18365fcaa1ab024be0f417175713c677afb98321209dce9c4d741e9f897a96`
+- Verify project tx: `6797048bcd49d9d96b05c3fbf5b2b4917edc4f29b9e11e006952ffcb8f77547d`
+- Retire voucher tx: `a4735c7a6f90cf21340dbe8c7b885c36308008f097f926bf0f768e9197b95f06`
+- Withdraw funds tx: `c8062efdd8e0512f88bcf2908bef4f085d2b4d5175202f8d8b5b304c4b55e984`
+- Refund voucher tx: `7b44332277ce3be6b4d3167cf67f323b2956cb22593108ab4726b2537c28f9bf`
 
 ## Judging Criteria To Optimize
 

@@ -27,6 +27,7 @@ Green Impact Voucher creates a transparent green checkout flow:
 5. The project owner or admin verifies delivered impact with a report hash.
 6. The customer retires the voucher as public proof.
 7. The project owner withdraws funds only after verification.
+8. If the campaign is not verified after its deadline, the customer can claim a refund.
 
 ## Target Users
 
@@ -45,8 +46,9 @@ Stellar is well-suited for this use case because small customer contributions re
 - Soroban smart contract vault receives payment during `buy_voucher`.
 - `verify_project` stores a report hash and verified impact units.
 - `retire_voucher` creates a final proof state for the customer.
+- `refund_voucher` returns funds for unverified vouchers after the verification deadline.
 - `withdraw_funds` releases funds only after verification.
-- Events are emitted for project creation, purchase, verification, retirement, withdrawal, and admin transfer.
+- Events are emitted for project creation, purchase, verification, retirement, refund, withdrawal, and admin transfer.
 
 ## Demo Flow
 
@@ -61,28 +63,29 @@ Stellar is well-suited for this use case because small customer contributions re
 
 ## Testnet Proof
 
-- Contract ID: `CDIGDTCOY3J6YHVXXBKK7NWLSLYHYV3OAPMSWHQJTPKQ4QBY4QVV4GL3`
-- Contract Explorer: <https://stellar.expert/explorer/testnet/contract/CDIGDTCOY3J6YHVXXBKK7NWLSLYHYV3OAPMSWHQJTPKQ4QBY4QVV4GL3>
-- WASM upload: <https://stellar.expert/explorer/testnet/tx/1e72f62f3f2e67ddce22b49be1fdcbcfa8bba19f064cf8956f023b9d86b404ea>
-- Deploy: <https://stellar.expert/explorer/testnet/tx/21141e51c1945035d66bbebd22da66aff369ba842cd3e3469d6564303c118c84>
-- Create project: <https://stellar.expert/explorer/testnet/tx/d3280934101aa3e21da70c0885d3c23aa33a24864be3ab4e3f1ce496188adaa9>
-- Buy voucher: <https://stellar.expert/explorer/testnet/tx/472998d13bce42752cd682ae63b074f21348c6ffec719a23de79348398f51702>
-- Verify project: <https://stellar.expert/explorer/testnet/tx/bfe5b3cfa4a2b5e52d236ab20c801cefee685880dfc5a837f2fc24927a65952c>
-- Retire voucher: <https://stellar.expert/explorer/testnet/tx/8f2a42d3a58291cf19d1b3b39d536fc2e490a3a87c24d5d8ac0163aa0420744b>
-- Withdraw funds: <https://stellar.expert/explorer/testnet/tx/cea81936292151d40393a9eba007f71e24408e826fdf96ff4363c811094ca3b5>
+- Contract ID: `CBN5FTEU5CYVGOJCP5D567ALVH2VQ4IHZIU7WG5CDZ7RM3QFXNTW2R4J`
+- Contract Explorer: <https://stellar.expert/explorer/testnet/contract/CBN5FTEU5CYVGOJCP5D567ALVH2VQ4IHZIU7WG5CDZ7RM3QFXNTW2R4J>
+- WASM upload: <https://stellar.expert/explorer/testnet/tx/9171b2e5efa4139cff02c248a16299f3e403df4a0ef7a6fac681b3e3fd5eef02>
+- Deploy: <https://stellar.expert/explorer/testnet/tx/7f64a44e66e7c2048ca8be074e3f2f12f3d4cc7ca1e0e3c8abb97d9775bc1cda>
+- Create project: <https://stellar.expert/explorer/testnet/tx/355f56f9f492a4e33ec90260ddf6347b8f6a25176b7618b72634344487d511ab>
+- Buy voucher: <https://stellar.expert/explorer/testnet/tx/ce18365fcaa1ab024be0f417175713c677afb98321209dce9c4d741e9f897a96>
+- Verify project: <https://stellar.expert/explorer/testnet/tx/6797048bcd49d9d96b05c3fbf5b2b4917edc4f29b9e11e006952ffcb8f77547d>
+- Retire voucher: <https://stellar.expert/explorer/testnet/tx/a4735c7a6f90cf21340dbe8c7b885c36308008f097f926bf0f768e9197b95f06>
+- Withdraw funds: <https://stellar.expert/explorer/testnet/tx/c8062efdd8e0512f88bcf2908bef4f085d2b4d5175202f8d8b5b304c4b55e984>
+- Refund voucher: <https://stellar.expert/explorer/testnet/tx/7b44332277ce3be6b4d3167cf67f323b2956cb22593108ab4726b2537c28f9bf>
 
 ## Technical Quality
 
 - Smart contract: Rust + Soroban SDK v26.
 - Frontend: React + Vite + Freighter.
-- Tests: 12 Soroban tests passing.
-- WASM size: 13,403 bytes.
+- Tests: 20 Soroban tests passing.
+- WASM size: 15,670 bytes.
 - Frontend checks: build, lint, and audit pass.
 - No private keys or `.env` files are committed.
 
 ## Differentiation
 
-The project connects real customer-facing payment behavior to verifiable local impact. It is not only an impact tracker: it includes payment, custody, verification, retirement, and conditional payout in a single Stellar workflow.
+The project connects real customer-facing payment behavior to verifiable local impact. It is not only an impact tracker: it includes payment, custody, verification, retirement, refund protection, and conditional payout in a single Stellar workflow.
 
 ## Roadmap
 

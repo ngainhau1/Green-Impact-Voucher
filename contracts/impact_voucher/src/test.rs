@@ -61,6 +61,10 @@ impl<'a> Fixture<'a> {
     }
 
     fn create_project(&self) {
+        self.create_project_with_deadline(1_725_000_000 + 30 * 24 * 60 * 60);
+    }
+
+    fn create_project_with_deadline(&self, verification_deadline: u64) {
         self.contract.create_project(
             &self.owner,
             &1,
@@ -70,7 +74,14 @@ impl<'a> Fixture<'a> {
             &10,
             &self.token.address,
             &String::from_str(&self.env, "ipfs://solar-classroom-metadata"),
+            &verification_deadline,
         );
+    }
+
+    fn advance_after_deadline(&self) {
+        self.env.ledger().with_mut(|li| {
+            li.timestamp = 1_725_000_000 + 31 * 24 * 60 * 60;
+        });
     }
 }
 
@@ -83,7 +94,9 @@ fn test_create_project_success() {
     assert_eq!(project.owner, fixture.owner);
     assert_eq!(project.price_per_voucher, 1_000_000);
     assert_eq!(project.unit_per_voucher, 10);
+    assert_eq!(project.verification_deadline, 1_725_000_000 + 30 * 24 * 60 * 60);
     assert_eq!(project.vouchers_sold, 0);
+    assert_eq!(project.refunded_amount, 0);
 }
 
 #[test]
@@ -100,8 +113,27 @@ fn test_reject_duplicate_project() {
         &10,
         &fixture.token.address,
         &String::from_str(&fixture.env, "ipfs://duplicate"),
+        &(1_725_000_000 + 30 * 24 * 60 * 60),
     );
     assert_eq!(result.unwrap_err(), Ok(ContractError::ProjectExists));
+}
+
+#[test]
+fn test_reject_project_deadline_not_in_future() {
+    let fixture = Fixture::setup();
+
+    let result = fixture.contract.try_create_project(
+        &fixture.owner,
+        &1,
+        &String::from_str(&fixture.env, "Da Nang Solar Classroom"),
+        &String::from_str(&fixture.env, "kWh solar funded"),
+        &1_000_000,
+        &10,
+        &fixture.token.address,
+        &String::from_str(&fixture.env, "ipfs://solar-classroom-metadata"),
+        &1_725_000_000,
+    );
+    assert_eq!(result.unwrap_err(), Ok(ContractError::InvalidInput));
 }
 
 #[test]
@@ -119,11 +151,15 @@ fn test_buy_voucher_transfers_payment_and_records_holding() {
     assert_eq!(voucher.quantity, 3);
     assert_eq!(voucher.impact_units, 30);
     assert!(!voucher.retired);
+    assert!(!voucher.refunded);
 
     let holding = fixture.contract.holding(&1, &fixture.buyer);
     assert_eq!(holding.active_vouchers, 3);
     assert_eq!(holding.active_units, 30);
     assert_eq!(holding.paid_amount, 3_000_000);
+    assert_eq!(holding.refunded_vouchers, 0);
+    assert_eq!(holding.refunded_units, 0);
+    assert_eq!(holding.refunded_amount, 0);
 }
 
 #[test]
@@ -262,6 +298,150 @@ fn test_reject_double_retire() {
         .contract
         .try_retire_voucher(&fixture.buyer, &voucher_id);
     assert_eq!(result.unwrap_err(), Ok(ContractError::AlreadyRetired));
+}
+
+#[test]
+fn test_reject_refund_before_deadline() {
+    let fixture = Fixture::setup();
+    fixture.create_project();
+    let voucher_id = fixture.contract.buy_voucher(&fixture.buyer, &1, &1);
+
+    let result = fixture
+        .contract
+        .try_refund_voucher(&fixture.buyer, &voucher_id);
+    assert_eq!(
+        result.unwrap_err(),
+        Ok(ContractError::VerificationDeadlineNotReached)
+    );
+}
+
+#[test]
+fn test_refund_after_deadline_returns_funds_and_updates_accounting() {
+    let fixture = Fixture::setup();
+    fixture.create_project();
+    let voucher_id = fixture.contract.buy_voucher(&fixture.buyer, &1, &2);
+    fixture.advance_after_deadline();
+
+    fixture.contract.refund_voucher(&fixture.buyer, &voucher_id);
+
+    assert_eq!(fixture.token.balance(&fixture.buyer), 10_000_000);
+    assert_eq!(fixture.token.balance(&fixture.contract.address), 0);
+
+    let voucher = fixture.contract.voucher(&voucher_id);
+    assert!(voucher.refunded);
+    assert!(!voucher.retired);
+
+    let project = fixture.contract.project(&1);
+    assert_eq!(project.refunded_amount, 2_000_000);
+
+    let holding = fixture.contract.holding(&1, &fixture.buyer);
+    assert_eq!(holding.active_vouchers, 0);
+    assert_eq!(holding.active_units, 0);
+    assert_eq!(holding.refunded_vouchers, 2);
+    assert_eq!(holding.refunded_units, 20);
+    assert_eq!(holding.refunded_amount, 2_000_000);
+}
+
+#[test]
+fn test_reject_double_refund() {
+    let fixture = Fixture::setup();
+    fixture.create_project();
+    let voucher_id = fixture.contract.buy_voucher(&fixture.buyer, &1, &1);
+    fixture.advance_after_deadline();
+
+    fixture.contract.refund_voucher(&fixture.buyer, &voucher_id);
+    let result = fixture
+        .contract
+        .try_refund_voucher(&fixture.buyer, &voucher_id);
+    assert_eq!(result.unwrap_err(), Ok(ContractError::AlreadyRefunded));
+}
+
+#[test]
+fn test_reject_refund_after_verification() {
+    let fixture = Fixture::setup();
+    fixture.create_project();
+    let voucher_id = fixture.contract.buy_voucher(&fixture.buyer, &1, &1);
+    fixture.contract.verify_project(
+        &fixture.owner,
+        &1,
+        &10,
+        &String::from_str(&fixture.env, "ipfs://meter-report"),
+    );
+    fixture.advance_after_deadline();
+
+    let result = fixture
+        .contract
+        .try_refund_voucher(&fixture.buyer, &voucher_id);
+    assert_eq!(result.unwrap_err(), Ok(ContractError::ProjectAlreadyVerified));
+}
+
+#[test]
+fn test_reject_refund_retired_voucher() {
+    let fixture = Fixture::setup();
+    fixture.create_project();
+    let voucher_id = fixture.contract.buy_voucher(&fixture.buyer, &1, &1);
+    fixture.contract.verify_project(
+        &fixture.owner,
+        &1,
+        &10,
+        &String::from_str(&fixture.env, "ipfs://meter-report"),
+    );
+    fixture.contract.retire_voucher(&fixture.buyer, &voucher_id);
+    fixture.advance_after_deadline();
+
+    let result = fixture
+        .contract
+        .try_refund_voucher(&fixture.buyer, &voucher_id);
+    assert_eq!(result.unwrap_err(), Ok(ContractError::AlreadyRetired));
+}
+
+#[test]
+fn test_reject_refund_wrong_owner() {
+    let fixture = Fixture::setup();
+    fixture.create_project();
+    let voucher_id = fixture.contract.buy_voucher(&fixture.buyer, &1, &1);
+    let attacker = Address::generate(&fixture.env);
+    fixture.advance_after_deadline();
+
+    let result = fixture.contract.try_refund_voucher(&attacker, &voucher_id);
+    assert_eq!(result.unwrap_err(), Ok(ContractError::NotVoucherOwner));
+}
+
+#[test]
+fn test_withdraw_accounting_after_refund() {
+    let fixture = Fixture::setup();
+    fixture.create_project();
+    let refunded_voucher_id = fixture.contract.buy_voucher(&fixture.buyer, &1, &2);
+    fixture.contract.buy_voucher(&fixture.buyer, &1, &2);
+    fixture.advance_after_deadline();
+
+    fixture
+        .contract
+        .refund_voucher(&fixture.buyer, &refunded_voucher_id);
+    fixture.contract.verify_project(
+        &fixture.owner,
+        &1,
+        &20,
+        &String::from_str(&fixture.env, "ipfs://meter-report"),
+    );
+
+    let over_withdraw = fixture
+        .contract
+        .try_withdraw_funds(&fixture.owner, &1, &3_000_000);
+    assert_eq!(
+        over_withdraw.unwrap_err(),
+        Ok(ContractError::InsufficientVaultBalance)
+    );
+
+    fixture
+        .contract
+        .withdraw_funds(&fixture.owner, &1, &2_000_000);
+    assert_eq!(fixture.token.balance(&fixture.owner), 2_000_000);
+    assert_eq!(fixture.token.balance(&fixture.contract.address), 0);
+
+    let project = fixture.contract.project(&1);
+    assert_eq!(project.refunded_amount, 2_000_000);
+    assert_eq!(project.withdrawn_amount, 2_000_000);
 }
 
 #[test]

@@ -27,7 +27,7 @@ export function loadConfig(env = process.env) {
     storageFile: storageFile === "memory" ? null : resolve(storageFile),
     stellarRpcUrl: env.STELLAR_RPC_URL || "https://soroban-testnet.stellar.org",
     stellarNetworkPassphrase: env.STELLAR_NETWORK_PASSPHRASE || "Test SDF Network ; September 2015",
-    contractId: env.CONTRACT_ID || "CDIGDTCOY3J6YHVXXBKK7NWLSLYHYV3OAPMSWHQJTPKQ4QBY4QVV4GL3",
+    contractId: env.CONTRACT_ID || "CBN5FTEU5CYVGOJCP5D567ALVH2VQ4IHZIU7WG5CDZ7RM3QFXNTW2R4J",
     paymentTokenId:
       env.PAYMENT_TOKEN_ID || "CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQVU2HHGCYSC",
   };

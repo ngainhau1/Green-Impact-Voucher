@@ -30,9 +30,11 @@ pub struct Project {
     pub payment_token: Address,
     pub price_per_voucher: i128,
     pub unit_per_voucher: u32,
+    pub verification_deadline: u64,
     pub vouchers_sold: u32,
     pub funded_amount: i128,
     pub withdrawn_amount: i128,
+    pub refunded_amount: i128,
     pub verified_units: u32,
     pub retired_units: u32,
 }
@@ -47,6 +49,7 @@ pub struct Voucher {
     pub impact_units: u32,
     pub paid_amount: i128,
     pub retired: bool,
+    pub refunded: bool,
     pub created_at: u64,
 }
 
@@ -56,9 +59,12 @@ pub struct Holding {
     pub vouchers_owned: u32,
     pub active_vouchers: u32,
     pub retired_vouchers: u32,
+    pub refunded_vouchers: u32,
     pub active_units: u32,
     pub retired_units: u32,
+    pub refunded_units: u32,
     pub paid_amount: i128,
+    pub refunded_amount: i128,
 }
 
 #[contracterror]
@@ -75,6 +81,9 @@ pub enum ContractError {
     ImpactNotVerified = 8,
     InsufficientVaultBalance = 9,
     ArithmeticOverflow = 10,
+    VerificationDeadlineNotReached = 11,
+    AlreadyRefunded = 12,
+    ProjectAlreadyVerified = 13,
 }
 
 #[contractevent(topics = ["project"], data_format = "single-value")]
@@ -119,6 +128,17 @@ pub struct FundsWithdrawn {
     pub owner: Address,
     #[topic]
     pub project_id: u32,
+    pub amount: i128,
+}
+
+#[contractevent(topics = ["refund"], data_format = "single-value")]
+pub struct VoucherRefunded {
+    #[topic]
+    pub owner: Address,
+    #[topic]
+    pub project_id: u32,
+    #[topic]
+    pub voucher_id: u64,
     pub amount: i128,
 }
 
@@ -181,6 +201,7 @@ impl ImpactVoucherContract {
         unit_per_voucher: u32,
         payment_token: Address,
         metadata_hash: String,
+        verification_deadline: u64,
     ) -> Result<(), ContractError> {
         owner.require_auth();
 
@@ -190,6 +211,7 @@ impl ImpactVoucherContract {
             || title.len() == 0
             || impact_unit.len() == 0
             || metadata_hash.len() == 0
+            || verification_deadline <= env.ledger().timestamp()
         {
             return Err(ContractError::InvalidInput);
         }
@@ -208,9 +230,11 @@ impl ImpactVoucherContract {
             payment_token,
             price_per_voucher,
             unit_per_voucher,
+            verification_deadline,
             vouchers_sold: 0,
             funded_amount: 0,
             withdrawn_amount: 0,
+            refunded_amount: 0,
             verified_units: 0,
             retired_units: 0,
         };
@@ -266,6 +290,7 @@ impl ImpactVoucherContract {
             impact_units,
             paid_amount,
             retired: false,
+            refunded: false,
             created_at: env.ledger().timestamp(),
         };
 
@@ -372,6 +397,9 @@ impl ImpactVoucherContract {
         if voucher.retired {
             return Err(ContractError::AlreadyRetired);
         }
+        if voucher.refunded {
+            return Err(ContractError::AlreadyRefunded);
+        }
 
         let project_key = DataKey::Project(voucher.project_id);
         let mut project = read_project(&env, voucher.project_id)?;
@@ -420,6 +448,98 @@ impl ImpactVoucherContract {
         Ok(())
     }
 
+    pub fn refund_voucher(env: Env, owner: Address, voucher_id: u64) -> Result<(), ContractError> {
+        owner.require_auth();
+
+        let voucher_key = DataKey::Voucher(voucher_id);
+        let mut voucher: Voucher = env
+            .storage()
+            .persistent()
+            .get(&voucher_key)
+            .ok_or(ContractError::VoucherNotFound)?;
+
+        if voucher.owner != owner {
+            return Err(ContractError::NotVoucherOwner);
+        }
+        if voucher.retired {
+            return Err(ContractError::AlreadyRetired);
+        }
+        if voucher.refunded {
+            return Err(ContractError::AlreadyRefunded);
+        }
+
+        let project_key = DataKey::Project(voucher.project_id);
+        let mut project = read_project(&env, voucher.project_id)?;
+        if project.verified_units > 0 {
+            return Err(ContractError::ProjectAlreadyVerified);
+        }
+        if env.ledger().timestamp() <= project.verification_deadline {
+            return Err(ContractError::VerificationDeadlineNotReached);
+        }
+
+        let available = project
+            .funded_amount
+            .checked_sub(project.withdrawn_amount)
+            .ok_or(ContractError::ArithmeticOverflow)?
+            .checked_sub(project.refunded_amount)
+            .ok_or(ContractError::ArithmeticOverflow)?;
+        if voucher.paid_amount > available {
+            return Err(ContractError::InsufficientVaultBalance);
+        }
+
+        let holding_key = DataKey::Holding(voucher.project_id, owner.clone());
+        let mut holding = read_holding_or_empty(&env, voucher.project_id, owner.clone());
+        if holding.active_vouchers < voucher.quantity || holding.active_units < voucher.impact_units
+        {
+            return Err(ContractError::InvalidInput);
+        }
+
+        token::Client::new(&env, &project.payment_token).transfer(
+            &env.current_contract_address(),
+            &owner,
+            &voucher.paid_amount,
+        );
+
+        voucher.refunded = true;
+        project.refunded_amount = project
+            .refunded_amount
+            .checked_add(voucher.paid_amount)
+            .ok_or(ContractError::ArithmeticOverflow)?;
+
+        holding.active_vouchers -= voucher.quantity;
+        holding.refunded_vouchers = holding
+            .refunded_vouchers
+            .checked_add(voucher.quantity)
+            .ok_or(ContractError::ArithmeticOverflow)?;
+        holding.active_units -= voucher.impact_units;
+        holding.refunded_units = holding
+            .refunded_units
+            .checked_add(voucher.impact_units)
+            .ok_or(ContractError::ArithmeticOverflow)?;
+        holding.refunded_amount = holding
+            .refunded_amount
+            .checked_add(voucher.paid_amount)
+            .ok_or(ContractError::ArithmeticOverflow)?;
+
+        env.storage().persistent().set(&voucher_key, &voucher);
+        env.storage().persistent().set(&project_key, &project);
+        env.storage().persistent().set(&holding_key, &holding);
+        extend_persistent_ttl(&env, &voucher_key);
+        extend_persistent_ttl(&env, &project_key);
+        extend_persistent_ttl(&env, &holding_key);
+        extend_instance_ttl(&env);
+
+        VoucherRefunded {
+            owner,
+            project_id: voucher.project_id,
+            voucher_id,
+            amount: voucher.paid_amount,
+        }
+        .publish(&env);
+
+        Ok(())
+    }
+
     pub fn withdraw_funds(
         env: Env,
         owner: Address,
@@ -443,6 +563,8 @@ impl ImpactVoucherContract {
         let available = project
             .funded_amount
             .checked_sub(project.withdrawn_amount)
+            .ok_or(ContractError::ArithmeticOverflow)?
+            .checked_sub(project.refunded_amount)
             .ok_or(ContractError::ArithmeticOverflow)?;
         if amount > available {
             return Err(ContractError::InsufficientVaultBalance);
@@ -506,9 +628,12 @@ fn read_holding_or_empty(env: &Env, project_id: u32, owner: Address) -> Holding 
             vouchers_owned: 0,
             active_vouchers: 0,
             retired_vouchers: 0,
+            refunded_vouchers: 0,
             active_units: 0,
             retired_units: 0,
+            refunded_units: 0,
             paid_amount: 0,
+            refunded_amount: 0,
         })
 }
 

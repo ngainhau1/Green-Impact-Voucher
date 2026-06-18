@@ -1,6 +1,6 @@
 # Backend Product API
 
-Green Impact Voucher uses the backend as a product layer only. It stores merchant-facing product data, checkout sessions, receipt metadata, and indexed transaction references. It does not custody funds, hold private keys, sign transactions, or override Soroban state.
+Green Impact Voucher uses the backend as a product layer only. It stores merchant-facing product data, checkout sessions, receipt metadata, refund/deadline display fields, and indexed transaction references. It does not custody funds, hold private keys, sign transactions, or override Soroban state.
 
 ## Runtime
 
@@ -58,10 +58,13 @@ Response:
     "status": "open",
     "amount": 2000000,
     "impactAmount": 20,
-    "impactUnit": "kWh of verified solar energy"
+    "impactUnit": "kWh of verified solar energy",
+    "contractBacked": true
   }
 }
 ```
+
+Campaign responses include `verificationDeadline`, `refundedAmount`, and `refundStatus` so the frontend can show refund protection without treating backend data as final financial state. Final settlement still comes from Soroban.
 
 ## Storage
 

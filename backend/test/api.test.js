@@ -14,7 +14,7 @@ async function createTestApp() {
     storageFile: null,
     stellarRpcUrl: "https://soroban-testnet.stellar.org",
     stellarNetworkPassphrase: "Test SDF Network ; September 2015",
-    contractId: "CDIGDTCOY3J6YHVXXBKK7NWLSLYHYV3OAPMSWHQJTPKQ4QBY4QVV4GL3",
+    contractId: "CBN5FTEU5CYVGOJCP5D567ALVH2VQ4IHZIU7WG5CDZ7RM3QFXNTW2R4J",
     paymentTokenId: "CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQVU2HHGCYSC",
   };
   const repository = await createRepository({ storageFile: null });
@@ -40,6 +40,8 @@ test("campaign endpoints expose seeded product campaigns", async () => {
   const campaigns = response.json().data;
   assert.equal(campaigns.length, 3);
   assert.equal(campaigns[0].contractBacked, true);
+  assert.equal(campaigns[0].verificationDeadline, 1784246400);
+  assert.equal(campaigns[1].refundStatus, "refund-window-open");
 
   const detail = await app.inject({ method: "GET", url: "/api/campaigns/1" });
   assert.equal(detail.statusCode, 200);
@@ -73,7 +75,8 @@ test("merchant dashboard returns aggregate finance metrics", async () => {
   const dashboard = response.json().data;
   assert.equal(dashboard.totals.campaigns, 3);
   assert.equal(dashboard.totals.vouchersSold, 75);
-  assert.equal(dashboard.indexedTransactionCount, 4);
+  assert.equal(dashboard.totals.refundRiskAmount, 72000000);
+  assert.equal(dashboard.indexedTransactionCount, 5);
   await app.close();
 });
 
@@ -89,6 +92,6 @@ test("receipts and indexer seed sync are available", async () => {
     payload: { mode: "seed" },
   });
   assert.equal(sync.statusCode, 200);
-  assert.equal(sync.json().data.length, 4);
+  assert.equal(sync.json().data.length, 5);
   await app.close();
 });

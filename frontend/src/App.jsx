@@ -4,6 +4,7 @@ import {
   BadgeCheck,
   Banknote,
   Building2,
+  Clock3,
   ClipboardCheck,
   Copy,
   ExternalLink,
@@ -15,6 +16,7 @@ import {
   ShieldCheck,
   ShoppingCart,
   Store,
+  Undo2,
   UserRound,
   Wallet,
   Zap,
@@ -37,6 +39,7 @@ import {
   fetchProject,
   isContractConfigured,
   NETWORK,
+  refundVoucher,
   retireVoucher,
   shortAddress,
   stroopsToXlm,
@@ -79,6 +82,12 @@ const financeFlow = [
   { label: "Receipt", detail: "Customer receives public proof", icon: ReceiptText },
 ];
 
+const DEFAULT_DEADLINE_SECONDS = 30 * 24 * 60 * 60;
+
+function defaultVerificationDeadline() {
+  return Math.floor(Date.now() / 1000) + DEFAULT_DEADLINE_SECONDS;
+}
+
 function asNumber(value) {
   if (typeof value === "bigint") return Number(value);
   if (typeof value === "number") return value;
@@ -92,9 +101,11 @@ function normalizeProject(project) {
     ...project,
     price_per_voucher: asNumber(project?.price_per_voucher ?? demoProject.price_per_voucher),
     unit_per_voucher: asNumber(project?.unit_per_voucher ?? demoProject.unit_per_voucher),
+    verification_deadline: asNumber(project?.verification_deadline ?? demoProject.verification_deadline),
     vouchers_sold: asNumber(project?.vouchers_sold ?? demoProject.vouchers_sold),
     funded_amount: asNumber(project?.funded_amount ?? demoProject.funded_amount),
     withdrawn_amount: asNumber(project?.withdrawn_amount ?? demoProject.withdrawn_amount),
+    refunded_amount: asNumber(project?.refunded_amount ?? demoProject.refunded_amount),
     verified_units: asNumber(project?.verified_units ?? demoProject.verified_units),
     retired_units: asNumber(project?.retired_units ?? demoProject.retired_units),
   };
@@ -107,9 +118,12 @@ function normalizeHolding(holding) {
     vouchers_owned: asNumber(holding?.vouchers_owned ?? 0),
     active_vouchers: asNumber(holding?.active_vouchers ?? 0),
     retired_vouchers: asNumber(holding?.retired_vouchers ?? 0),
+    refunded_vouchers: asNumber(holding?.refunded_vouchers ?? 0),
     active_units: asNumber(holding?.active_units ?? 0),
     retired_units: asNumber(holding?.retired_units ?? 0),
+    refunded_units: asNumber(holding?.refunded_units ?? 0),
     paid_amount: asNumber(holding?.paid_amount ?? 0),
+    refunded_amount: asNumber(holding?.refunded_amount ?? 0),
   };
 }
 
@@ -139,6 +153,31 @@ function makeCheckoutLink(projectId) {
   return `${window.location.origin}${window.location.pathname}#/checkout/${projectId}`;
 }
 
+function formatDeadline(seconds) {
+  const value = Number(seconds || 0);
+  if (!value) return "No deadline";
+  return new Date(value * 1000).toLocaleDateString(undefined, {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
+}
+
+function isRefundWindowOpen(project) {
+  return (
+    Number(project?.verified_units || 0) === 0 &&
+    Number(project?.verification_deadline || 0) > 0 &&
+    Math.floor(Date.now() / 1000) > Number(project.verification_deadline)
+  );
+}
+
+function getRefundPolicyLabel(project, campaign) {
+  if (!campaign.contractBacked) return "Preview only";
+  if (Number(project.verified_units || 0) > 0) return "Verification complete";
+  if (isRefundWindowOpen(project)) return "Refund window open";
+  return `Protected until ${formatDeadline(project.verification_deadline)}`;
+}
+
 function campaignToProject(campaign, liveProject) {
   if (campaign.contractBacked) return liveProject;
   return normalizeProject({
@@ -148,9 +187,11 @@ function campaignToProject(campaign, liveProject) {
     report_hash: campaign.reportHash,
     price_per_voucher: campaign.pricePerVoucher,
     unit_per_voucher: campaign.unitPerVoucher,
+    verification_deadline: campaign.verificationDeadline,
     vouchers_sold: campaign.vouchersSold,
     funded_amount: campaign.fundedAmount,
     withdrawn_amount: campaign.withdrawnAmount,
+    refunded_amount: campaign.refundedAmount,
     verified_units: campaign.verifiedUnits,
     retired_units: Math.min(campaign.verifiedUnits, campaign.unitPerVoucher * 4),
   });
@@ -217,6 +258,12 @@ function RoleCard({ flow, active, onClick }) {
 function CampaignCard({ campaign, active, onSelect, onOpenCheckout }) {
   const verificationLabel =
     campaign.verifiedUnits > 0 ? `${campaign.verifiedUnits.toLocaleString()} verified` : "Awaiting verifier";
+  const refundLabel =
+    campaign.verifiedUnits > 0
+      ? "No refund risk"
+      : campaign.refundStatus === "refund-window-open"
+        ? "Refund open"
+        : "Refund protected";
 
   return (
     <article className={`campaign-card ${active ? "active" : ""}`}>
@@ -235,6 +282,7 @@ function CampaignCard({ campaign, active, onSelect, onOpenCheckout }) {
           <span>{campaign.vouchersSold.toLocaleString()} sold</span>
           <span>{stroopsToXlm(campaign.fundedAmount)} XLM funded</span>
           <span>{verificationLabel}</span>
+          <span>{refundLabel}</span>
         </div>
       </button>
       <button className="button button-ghost button-full" type="button" onClick={() => onOpenCheckout(campaign)}>
@@ -262,6 +310,7 @@ function CheckoutGenerator({ campaign, checkoutLink, checkoutSession, copied, on
             <span>{campaign.status}</span>
             <span>{campaign.category}</span>
             <span>{campaign.location}</span>
+            <span>Deadline {formatDeadline(campaign.verificationDeadline)}</span>
           </div>
           {checkoutSession?.projectId === campaign.projectId ? (
             <div className="session-chip">
@@ -306,6 +355,7 @@ function ImpactReceipt({ address, project, campaign, preview, quantity, lastTx, 
   const buyer = address ? shortAddress(address) : "Walk-in customer";
   const verified = project.verified_units > 0 ? "Verified impact available" : "Pending verification";
   const stageLabel = checkoutStage === "receipt" ? "Receipt issued" : "Quote ready";
+  const refundPolicy = getRefundPolicyLabel(project, campaign);
 
   return (
     <section className={`tool-panel receipt-panel receipt-${checkoutStage}`}>
@@ -357,6 +407,10 @@ function ImpactReceipt({ address, project, campaign, preview, quantity, lastTx, 
         <div className="receipt-row">
           <span>Status</span>
           <strong>{verified}</strong>
+        </div>
+        <div className="receipt-row">
+          <span>Refund policy</span>
+          <strong>{refundPolicy}</strong>
         </div>
       </div>
       <div className="receipt-status">
@@ -415,6 +469,7 @@ export default function App() {
     unitPerVoucher: 10,
     paymentToken: DEFAULT_PAYMENT_TOKEN,
     metadataHash: "ipfs://solar-classroom-metadata-v2",
+    verificationDeadline: defaultVerificationDeadline(),
   });
   const [lastTx, setLastTx] = useState(null);
   const [error, setError] = useState("");
@@ -441,7 +496,19 @@ export default function App() {
     displayProject.verified_units > 0
       ? Math.min(displayProject.retired_units / displayProject.verified_units, 1)
       : 0;
-  const vaultBalance = Math.max(displayProject.funded_amount - displayProject.withdrawn_amount, 0);
+  const vaultBalance = Math.max(
+    displayProject.funded_amount - displayProject.withdrawn_amount - displayProject.refunded_amount,
+    0,
+  );
+  const refundRiskAmount =
+    displayProject.verified_units > 0
+      ? 0
+      : Math.max(
+          displayProject.funded_amount - displayProject.withdrawn_amount - displayProject.refunded_amount,
+          0,
+        );
+  const refundWindowOpen = selectedCampaign.contractBacked && isRefundWindowOpen(displayProject);
+  const refundPolicyLabel = getRefundPolicyLabel(displayProject, selectedCampaign);
   const canBuySelectedCampaign = configured && selectedCampaign.contractBacked;
 
   const preview = useMemo(() => {
@@ -750,6 +817,10 @@ export default function App() {
             <span>Escrow balance</span>
             <strong>{stroopsToXlm(merchantDashboard?.totals?.escrowBalance ?? 0)} XLM</strong>
           </div>
+          <div>
+            <span>Refund risk</span>
+            <strong>{stroopsToXlm(merchantDashboard?.totals?.refundRiskAmount ?? 0)} XLM</strong>
+          </div>
         </div>
         {apiError ? <p className="api-note">{apiError}</p> : null}
 
@@ -818,6 +889,13 @@ export default function App() {
               detail="Report-backed impact"
               tone="gold"
             />
+            <Metric
+              icon={Clock3}
+              label="Verification deadline"
+              value={formatDeadline(displayProject.verification_deadline)}
+              detail={refundPolicyLabel}
+              tone={refundWindowOpen ? "danger" : "blue"}
+            />
           </div>
 
           <div className="vault-ledger">
@@ -838,8 +916,16 @@ export default function App() {
                 <strong>{stroopsToXlm(displayProject.funded_amount)} XLM</strong>
               </div>
               <div>
+                <span>Refunded</span>
+                <strong>{stroopsToXlm(displayProject.refunded_amount)} XLM</strong>
+              </div>
+              <div>
                 <span>Withdrawn</span>
                 <strong>{stroopsToXlm(displayProject.withdrawn_amount)} XLM</strong>
+              </div>
+              <div>
+                <span>Refund risk</span>
+                <strong>{stroopsToXlm(refundRiskAmount)} XLM</strong>
               </div>
               <div>
                 <span>Verification report</span>
@@ -911,6 +997,10 @@ export default function App() {
                     : "Missing contract config"
                   : "Preview only"}
               </strong>
+              <span>Verification deadline</span>
+              <strong>{formatDeadline(displayProject.verification_deadline)}</strong>
+              <span>Refund policy</span>
+              <strong>{refundPolicyLabel}</strong>
             </div>
             {!selectedCampaign.contractBacked ? (
               <p className="panel-note">
@@ -957,8 +1047,12 @@ export default function App() {
               <strong>{holding.active_vouchers}</strong>
               <span>Retired vouchers</span>
               <strong>{holding.retired_vouchers}</strong>
+              <span>Refunded vouchers</span>
+              <strong>{holding.refunded_vouchers}</strong>
               <span>Retired impact</span>
               <strong>{holding.retired_units} units</strong>
+              <span>Refunded amount</span>
+              <strong>{stroopsToXlm(holding.refunded_amount)} XLM</strong>
             </div>
             <label>
               Voucher ID
@@ -977,6 +1071,17 @@ export default function App() {
               <Recycle size={17} aria-hidden="true" />
               Retire Voucher
             </button>
+            <button
+              className="button button-ghost button-full refund-action"
+              disabled={!configured || !voucherId || !refundWindowOpen || busy === "refund"}
+              onClick={() => runTx("refund", () => refundVoucher(address, voucherId))}
+            >
+              <Undo2 size={17} aria-hidden="true" />
+              Claim Refund
+            </button>
+            <p className="panel-note refund-note">
+              Refunds open only after the verification deadline if the campaign has no verified impact.
+            </p>
           </section>
         </aside>
       </main>
@@ -1094,6 +1199,17 @@ export default function App() {
               <input
                 value={createForm.metadataHash}
                 onChange={(event) => setCreateForm({ ...createForm, metadataHash: event.target.value })}
+              />
+            </label>
+            <label>
+              Verification deadline
+              <input
+                type="number"
+                min={Math.floor(Date.now() / 1000) + 1}
+                value={createForm.verificationDeadline}
+                onChange={(event) =>
+                  setCreateForm({ ...createForm, verificationDeadline: event.target.value })
+                }
               />
             </label>
           </div>

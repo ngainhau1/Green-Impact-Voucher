@@ -17,6 +17,7 @@ Use the concrete story:
 - Customer: pays `0.10 XLM` for a Solar Classroom Voucher.
 - Impact: `10 kWh of verified solar energy`.
 - Settlement rule: funds enter the smart contract vault first and unlock only after a verified report.
+- Refund rule: if no impact is verified after the campaign deadline, the customer can claim the voucher refund.
 
 ## 2. Show the Contract
 
@@ -27,24 +28,26 @@ Open `contracts/impact_voucher/src/lib.rs` and point out:
 - Typed storage keys in `DataKey`.
 - Typed errors in `ContractError`.
 - TTL extension after writes.
-- Events for project creation, purchase, verification, retirement, withdrawal, and admin transfer.
+- Events for project creation, purchase, verification, retirement, refund, withdrawal, and admin transfer.
 - `admin()` and `set_admin(current_admin, new_admin)` added from bootcamp-style best practices.
+- `refund_voucher(owner, voucher_id)` added for deadline-based consumer protection.
 
 ## 3. Show Testnet Proof
 
 Open Stellar Expert:
 
-- Contract page: `CDIGDTCOY3J6YHVXXBKK7NWLSLYHYV3OAPMSWHQJTPKQ4QBY4QVV4GL3`
-- Contract URL: <https://stellar.expert/explorer/testnet/contract/CDIGDTCOY3J6YHVXXBKK7NWLSLYHYV3OAPMSWHQJTPKQ4QBY4QVV4GL3>
-- WASM upload transaction: `1e72f62f3f2e67ddce22b49be1fdcbcfa8bba19f064cf8956f023b9d86b404ea`
-- Deploy transaction: `21141e51c1945035d66bbebd22da66aff369ba842cd3e3469d6564303c118c84`
-- `create_project` transaction: `d3280934101aa3e21da70c0885d3c23aa33a24864be3ab4e3f1ce496188adaa9`
-- `buy_voucher` transaction: `472998d13bce42752cd682ae63b074f21348c6ffec719a23de79348398f51702`
-- `verify_project` transaction: `bfe5b3cfa4a2b5e52d236ab20c801cefee685880dfc5a837f2fc24927a65952c`
-- `retire_voucher` transaction: `8f2a42d3a58291cf19d1b3b39d536fc2e490a3a87c24d5d8ac0163aa0420744b`
-- `withdraw_funds` transaction: `cea81936292151d40393a9eba007f71e24408e826fdf96ff4363c811094ca3b5`
+- Contract page: `CBN5FTEU5CYVGOJCP5D567ALVH2VQ4IHZIU7WG5CDZ7RM3QFXNTW2R4J`
+- Contract URL: <https://stellar.expert/explorer/testnet/contract/CBN5FTEU5CYVGOJCP5D567ALVH2VQ4IHZIU7WG5CDZ7RM3QFXNTW2R4J>
+- WASM upload transaction: `9171b2e5efa4139cff02c248a16299f3e403df4a0ef7a6fac681b3e3fd5eef02`
+- Deploy transaction: `7f64a44e66e7c2048ca8be074e3f2f12f3d4cc7ca1e0e3c8abb97d9775bc1cda`
+- `create_project` transaction: `355f56f9f492a4e33ec90260ddf6347b8f6a25176b7618b72634344487d511ab`
+- `buy_voucher` transaction: `ce18365fcaa1ab024be0f417175713c677afb98321209dce9c4d741e9f897a96`
+- `verify_project` transaction: `6797048bcd49d9d96b05c3fbf5b2b4917edc4f29b9e11e006952ffcb8f77547d`
+- `retire_voucher` transaction: `a4735c7a6f90cf21340dbe8c7b885c36308008f097f926bf0f768e9197b95f06`
+- `withdraw_funds` transaction: `c8062efdd8e0512f88bcf2908bef4f085d2b4d5175202f8d8b5b304c4b55e984`
+- `refund_voucher` transaction: `7b44332277ce3be6b4d3167cf67f323b2956cb22593108ab4726b2537c28f9bf`
 
-Key proof line: `buy_voucher` transfers 2,000,000 stroops into the contract vault, and `withdraw_funds` transfers 1,000,000 stroops back to the owner only after verification.
+Key proof line: `buy_voucher` transfers 2,000,000 stroops into the contract vault, `withdraw_funds` transfers 1,000,000 stroops back to the owner only after verification, and `refund_voucher` transfers 500,000 stroops back to the buyer after an unverified campaign misses its deadline.
 
 ## 4. Show the Frontend Flow
 
@@ -56,7 +59,8 @@ Key proof line: `buy_voucher` transfers 2,000,000 stroops into the contract vaul
 6. Buy a voucher and open the Stellar Expert transaction link.
 7. Verify project impact from the owner/admin account.
 8. Retire voucher ID `1`.
-9. Show that the Impact Passport and vault counters refresh after transactions.
+9. Show the refund policy/deadline fields and the `Claim Refund` control.
+10. Show that the Impact Passport and vault counters refresh after transactions.
 
 ## 5. Quality Gates
 
@@ -73,7 +77,7 @@ npm audit --omit=dev
 
 Expected result:
 
-- 12 contract tests pass.
+- 20 contract tests pass.
 - WASM builds successfully and is under 64KB.
 - Frontend build and lint pass.
 - Audit reports 0 vulnerabilities.

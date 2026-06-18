@@ -15,7 +15,10 @@ export async function registerMerchantRoutes(app, { repository }) {
         acc.escrowBalance += Math.max(campaign.fundedAmount - campaign.withdrawnAmount - campaign.refundedAmount, 0);
         acc.verifiedUnits += campaign.verifiedUnits;
         acc.payoutReadyAmount += campaign.payoutReadyAmount;
-        acc.refundRiskAmount += campaign.verifiedUnits > 0 ? 0 : campaign.fundedAmount;
+        acc.refundRiskAmount +=
+          campaign.verifiedUnits > 0
+            ? 0
+            : Math.max(campaign.fundedAmount - campaign.withdrawnAmount - campaign.refundedAmount, 0);
         return acc;
       },
       {

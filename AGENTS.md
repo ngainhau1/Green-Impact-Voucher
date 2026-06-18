@@ -17,7 +17,7 @@ Locked big UI decision: use **A+C**, meaning **Satellite Proof + Solar Classroom
 - Frontend: React/Vite in `frontend`.
 - Primary UI language: English.
 - Payment token: native XLM Stellar Asset Contract on Stellar Testnet.
-- Current contract ID: `CDIGDTCOY3J6YHVXXBKK7NWLSLYHYV3OAPMSWHQJTPKQ4QBY4QVV4GL3`.
+- Current contract ID: `CBN5FTEU5CYVGOJCP5D567ALVH2VQ4IHZIU7WG5CDZ7RM3QFXNTW2R4J`.
 - Current frontend surfaces: Customer Checkout, Merchant Console, Verifier Vault, vault ledger, and impact receipt.
 
 ## Winning Criteria

@@ -125,7 +125,7 @@
                   "u32": 1
                 },
                 {
-                  "u32": 4
+                  "u32": 1
                 }
               ]
             }
@@ -144,7 +144,7 @@
                       "address": "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAMDR4"
                     },
                     {
-                      "i128": "4000000"
+                      "i128": "1000000"
                     }
                   ]
                 }
@@ -155,27 +155,20 @@
         }
       ]
     ],
-    [],
     [
       [
-        "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAFCT4",
+        "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAHK3M",
         {
           "function": {
             "contract_fn": {
               "contract_address": "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAMDR4",
-              "function_name": "verify_project",
+              "function_name": "refund_voucher",
               "args": [
                 {
-                  "address": "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAFCT4"
+                  "address": "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAHK3M"
                 },
                 {
-                  "u32": 1
-                },
-                {
-                  "u32": 40
-                },
-                {
-                  "string": "ipfs://meter-report"
+                  "u64": "1"
                 }
               ]
             }
@@ -184,39 +177,12 @@
         }
       ]
     ],
-    [
-      [
-        "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAFCT4",
-        {
-          "function": {
-            "contract_fn": {
-              "contract_address": "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAMDR4",
-              "function_name": "withdraw_funds",
-              "args": [
-                {
-                  "address": "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAFCT4"
-                },
-                {
-                  "u32": 1
-                },
-                {
-                  "i128": "2000000"
-                }
-              ]
-            }
-          },
-          "sub_invocations": []
-        }
-      ]
-    ],
-    [],
-    [],
     []
   ],
   "ledger": {
     "protocol_version": 26,
     "sequence_number": 0,
-    "timestamp": 1725000000,
+    "timestamp": 1727678400,
     "network_id": "0000000000000000000000000000000000000000000000000000000000000000",
     "base_reserve": 0,
     "min_persistent_entry_ttl": 4096,
@@ -310,30 +276,10 @@
           "data": {
             "contract_data": {
               "ext": "v0",
-              "contract": "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAFCT4",
+              "contract": "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAHK3M",
               "key": {
                 "ledger_key_nonce": {
-                  "nonce": "6277191135259896685"
-                }
-              },
-              "durability": "temporary",
-              "val": "void"
-            }
-          },
-          "ext": "v0"
-        },
-        "live_until": 6311999
-      },
-      {
-        "entry": {
-          "last_modified_ledger_seq": 0,
-          "data": {
-            "contract_data": {
-              "ext": "v0",
-              "contract": "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAFCT4",
-              "key": {
-                "ledger_key_nonce": {
-                  "nonce": "8370022561469687789"
+                  "nonce": "2032731177588607455"
                 }
               },
               "durability": "temporary",
@@ -353,7 +299,7 @@
               "contract": "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAHK3M",
               "key": {
                 "ledger_key_nonce": {
-                  "nonce": "2032731177588607455"
+                  "nonce": "4270020994084947596"
                 }
               },
               "durability": "temporary",
@@ -412,7 +358,7 @@
                       "symbol": "active_units"
                     },
                     "val": {
-                      "u32": 40
+                      "u32": 0
                     }
                   },
                   {
@@ -420,7 +366,7 @@
                       "symbol": "active_vouchers"
                     },
                     "val": {
-                      "u32": 4
+                      "u32": 0
                     }
                   },
                   {
@@ -428,7 +374,7 @@
                       "symbol": "paid_amount"
                     },
                     "val": {
-                      "i128": "4000000"
+                      "i128": "1000000"
                     }
                   },
                   {
@@ -436,7 +382,7 @@
                       "symbol": "refunded_amount"
                     },
                     "val": {
-                      "i128": "0"
+                      "i128": "1000000"
                     }
                   },
                   {
@@ -444,7 +390,7 @@
                       "symbol": "refunded_units"
                     },
                     "val": {
-                      "u32": 0
+                      "u32": 10
                     }
                   },
                   {
@@ -452,7 +398,7 @@
                       "symbol": "refunded_vouchers"
                     },
                     "val": {
-                      "u32": 0
+                      "u32": 1
                     }
                   },
                   {
@@ -476,7 +422,7 @@
                       "symbol": "vouchers_owned"
                     },
                     "val": {
-                      "u32": 4
+                      "u32": 1
                     }
                   }
                 ]
@@ -512,7 +458,7 @@
                       "symbol": "funded_amount"
                     },
                     "val": {
-                      "i128": "4000000"
+                      "i128": "1000000"
                     }
                   },
                   {
@@ -560,7 +506,7 @@
                       "symbol": "refunded_amount"
                     },
                     "val": {
-                      "i128": "0"
+                      "i128": "1000000"
                     }
                   },
                   {
@@ -568,7 +514,7 @@
                       "symbol": "report_hash"
                     },
                     "val": {
-                      "string": "ipfs://meter-report"
+                      "string": ""
                     }
                   },
                   {
@@ -608,7 +554,7 @@
                       "symbol": "verified_units"
                     },
                     "val": {
-                      "u32": 40
+                      "u32": 0
                     }
                   },
                   {
@@ -616,7 +562,7 @@
                       "symbol": "vouchers_sold"
                     },
                     "val": {
-                      "u32": 4
+                      "u32": 1
                     }
                   },
                   {
@@ -624,7 +570,7 @@
                       "symbol": "withdrawn_amount"
                     },
                     "val": {
-                      "i128": "2000000"
+                      "i128": "0"
                     }
                   }
                 ]
@@ -676,7 +622,7 @@
                       "symbol": "impact_units"
                     },
                     "val": {
-                      "u32": 40
+                      "u32": 10
                     }
                   },
                   {
@@ -692,7 +638,7 @@
                       "symbol": "paid_amount"
                     },
                     "val": {
-                      "i128": "4000000"
+                      "i128": "1000000"
                     }
                   },
                   {
@@ -708,7 +654,7 @@
                       "symbol": "quantity"
                     },
                     "val": {
-                      "u32": 4
+                      "u32": 1
                     }
                   },
                   {
@@ -716,7 +662,7 @@
                       "symbol": "refunded"
                     },
                     "val": {
-                      "bool": false
+                      "bool": true
                     }
                   },
                   {
@@ -796,58 +742,6 @@
                     "symbol": "Balance"
                   },
                   {
-                    "address": "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAFCT4"
-                  }
-                ]
-              },
-              "durability": "persistent",
-              "val": {
-                "map": [
-                  {
-                    "key": {
-                      "symbol": "amount"
-                    },
-                    "val": {
-                      "i128": "2000000"
-                    }
-                  },
-                  {
-                    "key": {
-                      "symbol": "authorized"
-                    },
-                    "val": {
-                      "bool": true
-                    }
-                  },
-                  {
-                    "key": {
-                      "symbol": "clawback"
-                    },
-                    "val": {
-                      "bool": false
-                    }
-                  }
-                ]
-              }
-            }
-          },
-          "ext": "v0"
-        },
-        "live_until": 518400
-      },
-      {
-        "entry": {
-          "last_modified_ledger_seq": 0,
-          "data": {
-            "contract_data": {
-              "ext": "v0",
-              "contract": "CDLDVFKHEZ2RVB3NG4UQA4VPD3TSHV6XMHXMHP2BSGCJ2IIWVTOHGDSG",
-              "key": {
-                "vec": [
-                  {
-                    "symbol": "Balance"
-                  },
-                  {
                     "address": "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAHK3M"
                   }
                 ]
@@ -860,7 +754,7 @@
                       "symbol": "amount"
                     },
                     "val": {
-                      "i128": "6000000"
+                      "i128": "10000000"
                     }
                   },
                   {
@@ -912,7 +806,7 @@
                       "symbol": "amount"
                     },
                     "val": {
-                      "i128": "2000000"
+                      "i128": "0"
                     }
                   },
                   {

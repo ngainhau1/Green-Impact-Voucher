@@ -20,7 +20,7 @@ Locked big UI decision: use **A+C**, meaning **Satellite Proof + Solar Classroom
 - Wallet: Freighter.
 - Network: Stellar Testnet.
 - Payment token: native XLM Stellar Asset Contract.
-- Current contract: `CDIGDTCOY3J6YHVXXBKK7NWLSLYHYV3OAPMSWHQJTPKQ4QBY4QVV4GL3`.
+- Current contract: `CBN5FTEU5CYVGOJCP5D567ALVH2VQ4IHZIU7WG5CDZ7RM3QFXNTW2R4J`.
 
 ## Work Priorities
 

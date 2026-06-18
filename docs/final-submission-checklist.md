@@ -24,7 +24,7 @@ Use this checklist before uploading the project to the Rise In APAC Stellar Hack
 - GitHub repository URL.
 - Demo video URL.
 - Optional hosted frontend URL.
-- Stellar Expert contract URL: <https://stellar.expert/explorer/testnet/contract/CDIGDTCOY3J6YHVXXBKK7NWLSLYHYV3OAPMSWHQJTPKQ4QBY4QVV4GL3>
+- Stellar Expert contract URL: <https://stellar.expert/explorer/testnet/contract/CBN5FTEU5CYVGOJCP5D567ALVH2VQ4IHZIU7WG5CDZ7RM3QFXNTW2R4J>
 
 ## Rise In Form Content
 
@@ -56,7 +56,7 @@ On Windows, the same checks can be run with:
 
 Expected result:
 
-- 12 contract tests pass.
+- 20 contract tests pass.
 - WASM build succeeds.
 - WASM size remains under 64KB.
 - Frontend build and lint pass.

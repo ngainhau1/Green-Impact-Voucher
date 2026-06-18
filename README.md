@@ -14,7 +14,7 @@ Coffee shops, campus events, retailers, and SMEs want customers to support local
 
 ## Solution
 
-Green Impact Voucher turns each checkout contribution into an on-chain impact voucher. Customer funds enter a Soroban smart contract vault first, impact is verified with a report hash, the customer receives a receipt-like voucher, and the project owner can withdraw funds only after verification.
+Green Impact Voucher turns each checkout contribution into an on-chain impact voucher. Customer funds enter a Soroban smart contract vault first, impact is verified with a report hash, the customer receives a receipt-like voucher, the project owner can withdraw funds only after verification, and customers can claim refunds when impact is not verified after the campaign deadline.
 
 ## Financial Application Positioning
 
@@ -37,6 +37,7 @@ Stellar makes this use case practical because fees are low enough for micro-cont
 - Backend product API for merchant campaigns, checkout sessions, receipt metadata, dashboard metrics, and indexed transaction references.
 - Contract vault custody: voucher purchases transfer payment into the contract.
 - Verified release: project owner can withdraw funds only after impact is verified.
+- Refund protection: unverified vouchers can be refunded after the verification deadline.
 - Customer checkout, merchant console, verifier vault, and impact receipt surfaces in the UI.
 - Merchant campaign list with scannable QR checkout links and route-like customer checkout state.
 - Voucher lifecycle: create project, buy voucher, verify impact, retire voucher, withdraw funds.
@@ -54,16 +55,17 @@ Stellar makes this use case practical because fees are low enough for micro-cont
 6. Owner/admin verifies delivered impact with a report hash.
 7. Customer retires the voucher as public proof of funded impact.
 8. Project owner withdraws verified funds from the vault.
+9. If a campaign misses its verification deadline, the customer can refund the voucher before payout.
 
 ## Contract Detail
 
 - Network: Stellar Testnet
-- Contract ID: `CDIGDTCOY3J6YHVXXBKK7NWLSLYHYV3OAPMSWHQJTPKQ4QBY4QVV4GL3`
+- Contract ID: `CBN5FTEU5CYVGOJCP5D567ALVH2VQ4IHZIU7WG5CDZ7RM3QFXNTW2R4J`
 - Payment token: Native XLM Stellar Asset Contract `CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQVU2HHGCYSC`
 - Admin/deployer: `GDZN36SJ6LJURNUNBW47MQF3DZQDAOGSTZIQVABZLMOVJLN4HZZE5JFK`
-- WASM hash: `5f08f4cd86250170386d2d904c5ee69fe48a801ed3b2eb5becf4ed395fbd1225`
-- WASM size: `13,403 bytes`
-- Contract Explorer: <https://stellar.expert/explorer/testnet/contract/CDIGDTCOY3J6YHVXXBKK7NWLSLYHYV3OAPMSWHQJTPKQ4QBY4QVV4GL3>
+- WASM hash: `114b6e5eb1e5969f5755c59be8b7b142ba60d90859dc5e88b06f6052a70c34a0`
+- WASM size: `15,670 bytes`
+- Contract Explorer: <https://stellar.expert/explorer/testnet/contract/CBN5FTEU5CYVGOJCP5D567ALVH2VQ4IHZIU7WG5CDZ7RM3QFXNTW2R4J>
 
 ![Stellar Expert contract proof](docs/screenshots/stellar-expert-contract.png)
 
@@ -71,15 +73,18 @@ Stellar makes this use case practical because fees are low enough for micro-cont
 
 | Step | Transaction |
 | --- | --- |
-| WASM upload | <https://stellar.expert/explorer/testnet/tx/1e72f62f3f2e67ddce22b49be1fdcbcfa8bba19f064cf8956f023b9d86b404ea> |
-| Deploy contract | <https://stellar.expert/explorer/testnet/tx/21141e51c1945035d66bbebd22da66aff369ba842cd3e3469d6564303c118c84> |
-| Create project | <https://stellar.expert/explorer/testnet/tx/d3280934101aa3e21da70c0885d3c23aa33a24864be3ab4e3f1ce496188adaa9> |
-| Buy voucher | <https://stellar.expert/explorer/testnet/tx/472998d13bce42752cd682ae63b074f21348c6ffec719a23de79348398f51702> |
-| Verify project | <https://stellar.expert/explorer/testnet/tx/bfe5b3cfa4a2b5e52d236ab20c801cefee685880dfc5a837f2fc24927a65952c> |
-| Retire voucher | <https://stellar.expert/explorer/testnet/tx/8f2a42d3a58291cf19d1b3b39d536fc2e490a3a87c24d5d8ac0163aa0420744b> |
-| Withdraw funds | <https://stellar.expert/explorer/testnet/tx/cea81936292151d40393a9eba007f71e24408e826fdf96ff4363c811094ca3b5> |
+| WASM upload | <https://stellar.expert/explorer/testnet/tx/9171b2e5efa4139cff02c248a16299f3e403df4a0ef7a6fac681b3e3fd5eef02> |
+| Deploy contract | <https://stellar.expert/explorer/testnet/tx/7f64a44e66e7c2048ca8be074e3f2f12f3d4cc7ca1e0e3c8abb97d9775bc1cda> |
+| Create project | <https://stellar.expert/explorer/testnet/tx/355f56f9f492a4e33ec90260ddf6347b8f6a25176b7618b72634344487d511ab> |
+| Buy voucher | <https://stellar.expert/explorer/testnet/tx/ce18365fcaa1ab024be0f417175713c677afb98321209dce9c4d741e9f897a96> |
+| Verify project | <https://stellar.expert/explorer/testnet/tx/6797048bcd49d9d96b05c3fbf5b2b4917edc4f29b9e11e006952ffcb8f77547d> |
+| Retire voucher | <https://stellar.expert/explorer/testnet/tx/a4735c7a6f90cf21340dbe8c7b885c36308008f097f926bf0f768e9197b95f06> |
+| Withdraw funds | <https://stellar.expert/explorer/testnet/tx/c8062efdd8e0512f88bcf2908bef4f085d2b4d5175202f8d8b5b304c4b55e984> |
+| Create refund pilot | <https://stellar.expert/explorer/testnet/tx/ff2b42e1344fca911ce3c23656bc2035982ebdc07ec106f1fa32f6301989173a> |
+| Buy refund pilot voucher | <https://stellar.expert/explorer/testnet/tx/daa1342911d26c725ae08101c6e7dea396ed6a5191abdd086c0e42f463c6763e> |
+| Refund voucher | <https://stellar.expert/explorer/testnet/tx/7b44332277ce3be6b4d3167cf67f323b2956cb22593108ab4726b2537c28f9bf> |
 
-The `buy_voucher` transaction transfers `2,000,000` stroops from the buyer to the contract. The `withdraw_funds` transaction transfers `1,000,000` stroops from the contract vault back to the project owner after verification.
+The `buy_voucher` transaction transfers `2,000,000` stroops from the buyer to the contract. The `withdraw_funds` transaction transfers `1,000,000` stroops from the contract vault back to the project owner after verification. The refund proof transfers `500,000` stroops back to the buyer after an unverified campaign passes its verification deadline.
 
 ## Tech Stack
 
@@ -125,10 +130,11 @@ GreenImpactVoucher/
 | `__constructor(admin)` | Stores the project admin at deployment time. |
 | `admin()` | Reads the current admin address. |
 | `set_admin(current_admin, new_admin)` | Transfers admin control and emits `AdminChanged`. |
-| `create_project(...)` | Registers an impact project and its payment token. |
+| `create_project(...)` | Registers an impact project, payment token, and verification deadline. |
 | `buy_voucher(buyer, project_id, quantity)` | Transfers payment into the vault and mints an ownership record. |
 | `verify_project(verifier, project_id, verified_units, report_hash)` | Lets owner or admin verify delivered impact. |
 | `retire_voucher(owner, voucher_id)` | Retires verified impact owned by a voucher holder. |
+| `refund_voucher(owner, voucher_id)` | Refunds an unverified voucher after the campaign verification deadline. |
 | `withdraw_funds(owner, project_id, amount)` | Lets project owner withdraw verified project funding. |
 | `project(project_id)` | Reads project state. |
 | `voucher(voucher_id)` | Reads voucher state. |
@@ -175,7 +181,7 @@ npm run dev
 Copy `frontend/.env.example` to `frontend/.env` for local frontend contract calls:
 
 ```text
-VITE_CONTRACT_ID=CDIGDTCOY3J6YHVXXBKK7NWLSLYHYV3OAPMSWHQJTPKQ4QBY4QVV4GL3
+VITE_CONTRACT_ID=CBN5FTEU5CYVGOJCP5D567ALVH2VQ4IHZIU7WG5CDZ7RM3QFXNTW2R4J
 VITE_PAYMENT_TOKEN_ID=CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQVU2HHGCYSC
 VITE_API_BASE_URL=http://127.0.0.1:8787
 ```
@@ -246,14 +252,15 @@ stellar contract invoke \
   --price_per_voucher 1000000 \
   --unit_per_voucher 10 \
   --payment_token "$PAYMENT_TOKEN" \
-  --metadata_hash "ipfs://solar-classroom-metadata"
+  --metadata_hash "ipfs://solar-classroom-metadata" \
+  --verification_deadline 1784246400
 ```
 
 ## Quality Gates
 
-- `cargo test`: 12 tests passing.
+- `cargo test`: 20 tests passing.
 - `stellar contract build --package impact-voucher`: success.
-- WASM size: 13,403 bytes, under the 64KB bootcamp guideline.
+- WASM size: 15,670 bytes, under the 64KB bootcamp guideline.
 - `cd backend && npm run build`: success.
 - `cd backend && npm test`: success.
 - `cd backend && npm run lint`: success.
@@ -270,8 +277,8 @@ stellar contract invoke \
 - Admin operations read admin from storage instead of hardcoding addresses.
 - Project and voucher data use typed Soroban storage keys.
 - Persistent entries and instance storage extend TTL after writes.
-- Contract events are emitted for project creation, purchase, verification, retirement, withdrawal, and admin transfer.
-- Arithmetic uses checked operations for funded amount, voucher count, impact units, and withdrawals.
+- Contract events are emitted for project creation, purchase, verification, retirement, refund, withdrawal, and admin transfer.
+- Arithmetic uses checked operations for funded amount, voucher count, impact units, refunds, and withdrawals.
 
 ## Backend Product API
 

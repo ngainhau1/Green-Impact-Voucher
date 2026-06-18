@@ -1,4 +1,5 @@
 export const PROJECT_ID = 1;
+export const DEMO_VERIFICATION_DEADLINE = 1784246400;
 
 export const demoProject = {
   owner: "GDZN36SJ6LJURNUNBW47MQF3DZQDAOGSTZIQVABZLMOVJLN4HZZE5JFK",
@@ -9,9 +10,11 @@ export const demoProject = {
   payment_token: "CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQVU2HHGCYSC",
   price_per_voucher: 1000000,
   unit_per_voucher: 10,
+  verification_deadline: DEMO_VERIFICATION_DEADLINE,
   vouchers_sold: 2,
   funded_amount: 2000000,
   withdrawn_amount: 1000000,
+  refunded_amount: 0,
   verified_units: 20,
   retired_units: 20,
 };
@@ -20,9 +23,12 @@ export const demoHolding = {
   vouchers_owned: 2,
   active_vouchers: 0,
   retired_vouchers: 2,
+  refunded_vouchers: 0,
   active_units: 0,
   retired_units: 20,
+  refunded_units: 0,
   paid_amount: 2000000,
+  refunded_amount: 0,
 };
 
 export const demoCampaigns = [
@@ -38,11 +44,14 @@ export const demoCampaigns = [
     contractBacked: true,
     pricePerVoucher: demoProject.price_per_voucher,
     unitPerVoucher: demoProject.unit_per_voucher,
+    verificationDeadline: demoProject.verification_deadline,
     impactUnit: demoProject.impact_unit,
     vouchersSold: demoProject.vouchers_sold,
     fundedAmount: demoProject.funded_amount,
     verifiedUnits: demoProject.verified_units,
     withdrawnAmount: demoProject.withdrawn_amount,
+    refundedAmount: demoProject.refunded_amount,
+    refundStatus: "verified-no-refund",
     reportHash: demoProject.report_hash,
   },
   {
@@ -57,11 +66,14 @@ export const demoCampaigns = [
     contractBacked: false,
     pricePerVoucher: 1500000,
     unitPerVoucher: 3,
+    verificationDeadline: 1781568000,
     impactUnit: "m2 of mangrove restoration",
     vouchersSold: 48,
     fundedAmount: 72000000,
     verifiedUnits: 0,
     withdrawnAmount: 0,
+    refundedAmount: 0,
+    refundStatus: "refund-window-open",
     reportHash: "Pending verifier report",
   },
   {
@@ -76,11 +88,14 @@ export const demoCampaigns = [
     contractBacked: false,
     pricePerVoucher: 800000,
     unitPerVoucher: 12,
+    verificationDeadline: 1784246400,
     impactUnit: "single-use bottles avoided",
     vouchersSold: 25,
     fundedAmount: 20000000,
     verifiedUnits: 120,
     withdrawnAmount: 0,
+    refundedAmount: 0,
+    refundStatus: "verified-no-refund",
     reportHash: "ipfs://campus-refill-audit-preview",
   },
 ];

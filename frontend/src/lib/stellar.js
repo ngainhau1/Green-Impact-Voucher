@@ -182,6 +182,7 @@ export async function createProject(address, form) {
     arg.u32(form.unitPerVoucher),
     arg.address(form.paymentToken),
     arg.string(form.metadataHash),
+    arg.u64(form.verificationDeadline),
   ]);
 }
 
@@ -204,6 +205,13 @@ export async function verifyProject(address, projectId, verifiedUnits, reportHas
 
 export async function retireVoucher(address, voucherId) {
   return submitContractCall(address, "retire_voucher", [
+    arg.address(address),
+    arg.u64(voucherId),
+  ]);
+}
+
+export async function refundVoucher(address, voucherId) {
+  return submitContractCall(address, "refund_voucher", [
     arg.address(address),
     arg.u64(voucherId),
   ]);
