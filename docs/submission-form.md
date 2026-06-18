@@ -24,10 +24,11 @@ Green Impact Voucher creates a transparent green checkout flow:
 2. A customer buys a small voucher during checkout.
 3. The payment goes into a Soroban smart contract vault.
 4. The customer receives an impact receipt with campaign, impact units, paid amount, and transaction proof.
-5. The project owner or admin verifies delivered impact with a report hash.
-6. The customer retires the voucher as public proof.
-7. The project owner withdraws funds only after verification.
-8. If the campaign is not verified after its deadline, the customer can claim a refund.
+5. The customer can open a public receipt page and campaign proof timeline without connecting a wallet.
+6. The project owner or admin verifies delivered impact with a report hash.
+7. The customer retires the voucher as public proof.
+8. The project owner withdraws funds only after verification.
+9. If the campaign is not verified after its deadline, the customer can claim a refund.
 
 ## Target Users
 
@@ -49,6 +50,7 @@ Stellar is well-suited for this use case because small customer contributions re
 - `refund_voucher` returns funds for unverified vouchers after the verification deadline.
 - `withdraw_funds` releases funds only after verification.
 - Events are emitted for project creation, purchase, verification, retirement, refund, withdrawal, and admin transfer.
+- Product API exposes public receipt and proof timeline routes for customer sharing.
 
 ## Demo Flow
 
@@ -56,10 +58,13 @@ Stellar is well-suited for this use case because small customer contributions re
 2. Show the three product modes: Customer Checkout, Merchant Console, Verifier Vault.
 3. Buy a Solar Classroom Voucher.
 4. Show the Impact Receipt.
-5. Open the Stellar Expert transaction proof.
-6. Verify impact with a report hash.
-7. Retire voucher ID `1`.
-8. Withdraw verified funds from the vault.
+5. Open `#/receipt/voucher-1` as a shareable customer proof page.
+6. Open `#/proof/1` for the verified campaign timeline.
+7. Open `#/proof/2` for the refund protection timeline.
+8. Open the Stellar Expert transaction proof.
+9. Verify impact with a report hash.
+10. Retire voucher ID `1`.
+11. Withdraw verified funds from the vault.
 
 ## Testnet Proof
 
@@ -80,6 +85,7 @@ Stellar is well-suited for this use case because small customer contributions re
 - Frontend: React + Vite + Freighter.
 - Tests: 20 Soroban tests passing.
 - WASM size: 15,670 bytes.
+- Backend API: public receipt and proof bundle endpoints with 8 tests passing.
 - Frontend checks: build, lint, and audit pass.
 - No private keys or `.env` files are committed.
 
@@ -92,5 +98,5 @@ The project connects real customer-facing payment behavior to verifiable local i
 - Add merchant campaign creation templates.
 - Add local stable asset or anchor-issued asset support.
 - Add off-chain metadata indexing for project reports and receipts.
-- Add receipt sharing for customers.
+- Host public receipt sharing pages for customer campaigns.
 - Add partner integrations for cafes, campuses, and events in Vietnam/APAC.

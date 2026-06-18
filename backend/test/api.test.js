@@ -76,7 +76,7 @@ test("merchant dashboard returns aggregate finance metrics", async () => {
   assert.equal(dashboard.totals.campaigns, 3);
   assert.equal(dashboard.totals.vouchersSold, 75);
   assert.equal(dashboard.totals.refundRiskAmount, 72000000);
-  assert.equal(dashboard.indexedTransactionCount, 5);
+  assert.equal(dashboard.indexedTransactionCount, 8);
   await app.close();
 });
 
@@ -92,6 +92,46 @@ test("receipts and indexer seed sync are available", async () => {
     payload: { mode: "seed" },
   });
   assert.equal(sync.statusCode, 200);
-  assert.equal(sync.json().data.length, 5);
+  assert.equal(sync.json().data.length, 8);
+  await app.close();
+});
+
+test("proof endpoint returns verified campaign timeline", async () => {
+  const app = await createTestApp();
+  const response = await app.inject({ method: "GET", url: "/api/proof/1" });
+  assert.equal(response.statusCode, 200);
+  const proof = response.json().data;
+  assert.equal(proof.projectId, 1);
+  assert.equal(proof.network, "Stellar Testnet");
+  assert.equal(proof.receipts.length, 1);
+  assert.deepEqual(
+    proof.timeline.map((item) => item.stage),
+    ["create_campaign", "buy_voucher", "verify_project", "retire_voucher", "withdraw_funds"],
+  );
+  assert.match(proof.contractExplorerUrl, /stellar\.expert\/explorer\/testnet\/contract/);
+  assert.match(proof.timeline[0].stellarExpertUrl, /stellar\.expert\/explorer\/testnet\/tx/);
+  await app.close();
+});
+
+test("proof endpoint returns refund campaign timeline", async () => {
+  const app = await createTestApp();
+  const response = await app.inject({ method: "GET", url: "/api/proof/2" });
+  assert.equal(response.statusCode, 200);
+  const proof = response.json().data;
+  assert.equal(proof.projectId, 2);
+  assert.equal(proof.campaign.refundStatus, "refund-window-open");
+  assert.deepEqual(
+    proof.timeline.map((item) => item.stage),
+    ["create_campaign", "buy_voucher", "refund_voucher"],
+  );
+  assert.equal(proof.timeline.at(-1).label, "Refund voucher");
+  await app.close();
+});
+
+test("proof endpoint returns structured not found error", async () => {
+  const app = await createTestApp();
+  const response = await app.inject({ method: "GET", url: "/api/proof/999" });
+  assert.equal(response.statusCode, 404);
+  assert.equal(response.json().error.code, "NOT_FOUND");
   await app.close();
 });

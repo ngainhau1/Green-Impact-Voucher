@@ -131,7 +131,17 @@ export const seedState = {
   ],
   indexedTransactions: [
     {
+      hash: "355f56f9f492a4e33ec90260ddf6347b8f6a25176b7618b72634344487d511ab",
+      stage: "create_campaign",
+      label: "Create campaign",
+      projectId: 1,
+      source: "seed-proof",
+      status: "SUCCESS",
+      syncedAt: "2026-06-17T00:00:00.000Z",
+    },
+    {
       hash: "ce18365fcaa1ab024be0f417175713c677afb98321209dce9c4d741e9f897a96",
+      stage: "buy_voucher",
       label: "Buy voucher",
       projectId: 1,
       source: "seed-proof",
@@ -140,6 +150,7 @@ export const seedState = {
     },
     {
       hash: "6797048bcd49d9d96b05c3fbf5b2b4917edc4f29b9e11e006952ffcb8f77547d",
+      stage: "verify_project",
       label: "Verify project",
       projectId: 1,
       source: "seed-proof",
@@ -148,6 +159,7 @@ export const seedState = {
     },
     {
       hash: "a4735c7a6f90cf21340dbe8c7b885c36308008f097f926bf0f768e9197b95f06",
+      stage: "retire_voucher",
       label: "Retire voucher",
       projectId: 1,
       source: "seed-proof",
@@ -156,6 +168,7 @@ export const seedState = {
     },
     {
       hash: "c8062efdd8e0512f88bcf2908bef4f085d2b4d5175202f8d8b5b304c4b55e984",
+      stage: "withdraw_funds",
       label: "Withdraw funds",
       projectId: 1,
       source: "seed-proof",
@@ -163,7 +176,26 @@ export const seedState = {
       syncedAt: "2026-06-17T00:00:00.000Z",
     },
     {
+      hash: "ff2b42e1344fca911ce3c23656bc2035982ebdc07ec106f1fa32f6301989173a",
+      stage: "create_campaign",
+      label: "Create refund pilot",
+      projectId: 2,
+      source: "seed-proof",
+      status: "SUCCESS",
+      syncedAt: "2026-06-17T00:00:00.000Z",
+    },
+    {
+      hash: "daa1342911d26c725ae08101c6e7dea396ed6a5191abdd086c0e42f463c6763e",
+      stage: "buy_voucher",
+      label: "Buy refund pilot voucher",
+      projectId: 2,
+      source: "seed-proof",
+      status: "SUCCESS",
+      syncedAt: "2026-06-17T00:00:00.000Z",
+    },
+    {
       hash: "7b44332277ce3be6b4d3167cf67f323b2956cb22593108ab4726b2537c28f9bf",
+      stage: "refund_voucher",
       label: "Refund voucher",
       projectId: 2,
       source: "seed-proof",

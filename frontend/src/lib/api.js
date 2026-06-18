@@ -43,3 +43,15 @@ export function createCheckoutSession(payload) {
 export function fetchCheckoutSession(sessionId) {
   return request(`/api/checkout-sessions/${encodeURIComponent(sessionId)}`);
 }
+
+export function fetchReceipt(voucherId) {
+  return request(`/api/receipts/${encodeURIComponent(voucherId)}`);
+}
+
+export function fetchProof(projectId) {
+  return request(`/api/proof/${encodeURIComponent(projectId)}`);
+}
+
+export function fetchIndexedTransactions() {
+  return request("/api/indexer/transactions");
+}

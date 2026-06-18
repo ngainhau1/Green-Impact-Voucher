@@ -26,6 +26,8 @@ import {
   fetchCampaigns,
   fetchCheckoutSession,
   fetchMerchantDashboard,
+  fetchProof,
+  fetchReceipt,
 } from "./lib/api";
 import {
   buyVoucher,
@@ -46,7 +48,7 @@ import {
   verifyProject,
   withdrawFunds,
 } from "./lib/stellar";
-import { demoCampaigns, demoHolding, demoProject, PROJECT_ID } from "./lib/demoData";
+import { demoCampaigns, demoHolding, demoProject, demoProofs, demoReceipts, PROJECT_ID } from "./lib/demoData";
 
 const flowTabs = [
   {
@@ -144,13 +146,49 @@ function getCheckoutRouteFromHash() {
   };
 }
 
+function getPublicRouteFromHash() {
+  if (typeof window === "undefined") return { type: "app" };
+  const hash = window.location.hash;
+  const receiptMatch = hash.match(/^#\/receipt\/([^?&]+)/);
+  if (receiptMatch) {
+    return { type: "receipt", voucherId: decodeURIComponent(receiptMatch[1]) };
+  }
+  const proofMatch = hash.match(/^#\/proof\/(\d+)/);
+  if (proofMatch) {
+    return { type: "proof", projectId: Number(proofMatch[1]) };
+  }
+  const checkoutRoute = getCheckoutRouteFromHash();
+  if (hash.startsWith("#/checkout/")) {
+    return { type: "checkout", ...checkoutRoute };
+  }
+  return { type: "app" };
+}
+
 function getCheckoutProjectIdFromHash() {
   return getCheckoutRouteFromHash().projectId;
 }
 
+function makeHashLink(hash) {
+  if (typeof window === "undefined") return hash;
+  return `${window.location.origin}${window.location.pathname}${hash}`;
+}
+
 function makeCheckoutLink(projectId) {
-  if (typeof window === "undefined") return `#/checkout/${projectId}`;
-  return `${window.location.origin}${window.location.pathname}#/checkout/${projectId}`;
+  return makeHashLink(`#/checkout/${projectId}`);
+}
+
+function makeReceiptLink(voucherId) {
+  return makeHashLink(`#/receipt/${encodeURIComponent(voucherId)}`);
+}
+
+function makeProofLink(projectId) {
+  return makeHashLink(`#/proof/${projectId}`);
+}
+
+function openHashRoute(hash) {
+  if (typeof window !== "undefined") {
+    window.location.hash = hash.replace(/^#/, "");
+  }
 }
 
 function formatDeadline(seconds) {
@@ -255,7 +293,7 @@ function RoleCard({ flow, active, onClick }) {
   );
 }
 
-function CampaignCard({ campaign, active, onSelect, onOpenCheckout }) {
+function CampaignCard({ campaign, active, onSelect, onOpenCheckout, onOpenProof }) {
   const verificationLabel =
     campaign.verifiedUnits > 0 ? `${campaign.verifiedUnits.toLocaleString()} verified` : "Awaiting verifier";
   const refundLabel =
@@ -285,15 +323,29 @@ function CampaignCard({ campaign, active, onSelect, onOpenCheckout }) {
           <span>{refundLabel}</span>
         </div>
       </button>
-      <button className="button button-ghost button-full" type="button" onClick={() => onOpenCheckout(campaign)}>
-        <Link2 size={16} aria-hidden="true" />
-        Open checkout
-      </button>
+      <div className="campaign-card-actions">
+        <button className="button button-ghost button-full" type="button" onClick={() => onOpenCheckout(campaign)}>
+          <Link2 size={16} aria-hidden="true" />
+          Open checkout
+        </button>
+        <button className="button button-secondary button-full" type="button" onClick={() => onOpenProof(campaign)}>
+          <ShieldCheck size={16} aria-hidden="true" />
+          View proof
+        </button>
+      </div>
     </article>
   );
 }
 
-function CheckoutGenerator({ campaign, checkoutLink, checkoutSession, copied, onCopy, onOpenCheckout }) {
+function CheckoutGenerator({
+  campaign,
+  checkoutLink,
+  checkoutSession,
+  copied,
+  onCopy,
+  onOpenCheckout,
+  onOpenProof,
+}) {
   return (
     <section className="campaign-detail">
       <div className="panel-title">
@@ -336,6 +388,10 @@ function CheckoutGenerator({ campaign, checkoutLink, checkoutSession, copied, on
               <ShoppingCart size={16} aria-hidden="true" />
               Open checkout
             </button>
+            <button className="button button-ghost" type="button" onClick={() => onOpenProof(campaign)}>
+              <ShieldCheck size={16} aria-hidden="true" />
+              Proof timeline
+            </button>
           </div>
         </div>
 
@@ -350,7 +406,7 @@ function CheckoutGenerator({ campaign, checkoutLink, checkoutSession, copied, on
   );
 }
 
-function ImpactReceipt({ address, project, campaign, preview, quantity, lastTx, checkoutStage }) {
+function ImpactReceipt({ address, project, campaign, preview, quantity, lastTx, checkoutStage, onOpenReceipt }) {
   const txLabel = lastTx?.hash ? shortAddress(lastTx.hash) : "Awaiting tx";
   const buyer = address ? shortAddress(address) : "Walk-in customer";
   const verified = project.verified_units > 0 ? "Verified impact available" : "Pending verification";
@@ -420,6 +476,10 @@ function ImpactReceipt({ address, project, campaign, preview, quantity, lastTx, 
           transaction proof.
         </span>
       </div>
+      <button className="button button-ghost button-full" type="button" onClick={onOpenReceipt}>
+        <ReceiptText size={16} aria-hidden="true" />
+        Open public receipt
+      </button>
     </section>
   );
 }
@@ -439,6 +499,270 @@ function TxNotice({ tx, error }) {
         </a>
       ) : null}
     </section>
+  );
+}
+
+function getFallbackReceipt(voucherId) {
+  return demoReceipts.find((receipt) => receipt.voucherId === voucherId) || null;
+}
+
+function getFallbackProof(projectId) {
+  return demoProofs.find((proof) => proof.projectId === Number(projectId)) || null;
+}
+
+function formatDateTime(value) {
+  if (!value) return "Unknown";
+  return new Date(value).toLocaleString(undefined, {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
+function PublicProofHeader({ status, onCopy, copied }) {
+  return (
+    <header className="topbar public-topbar">
+      <a className="brand-block public-brand" href={makeHashLink("#/checkout/1")}>
+        <img src="/impact-mark.svg" alt="" />
+        <div>
+          <span>Public proof layer</span>
+          <h1>Green Impact Voucher</h1>
+        </div>
+      </a>
+      <div className="topbar-actions">
+        <span className={`network-pill ${status === "connected" ? "ready" : "demo"}`}>
+          {status === "loading" ? "Loading proof" : status === "connected" ? "API proof" : "Seed fallback"}
+        </span>
+        <button className="button button-secondary" type="button" onClick={onCopy}>
+          <Copy size={16} aria-hidden="true" />
+          {copied ? "Copied" : "Copy page"}
+        </button>
+      </div>
+    </header>
+  );
+}
+
+function PublicNotFound({ title, detail }) {
+  return (
+    <div className="app-shell public-proof-shell">
+      <PublicProofHeader status="fallback" onCopy={() => {}} copied={false} />
+      <section className="public-proof-hero">
+        <span className="eyebrow">Proof unavailable</span>
+        <h2>{title}</h2>
+        <p>{detail}</p>
+        <div className="hero-actions">
+          <a className="button button-primary" href={makeHashLink("#/checkout/1")}>
+            <ShoppingCart size={17} aria-hidden="true" />
+            Back to checkout
+          </a>
+          <a className="button button-ghost" href={makeHashLink("#/proof/1")}>
+            <ShieldCheck size={17} aria-hidden="true" />
+            View verified proof
+          </a>
+        </div>
+      </section>
+    </div>
+  );
+}
+
+function PublicLoading({ title }) {
+  return (
+    <div className="app-shell public-proof-shell">
+      <PublicProofHeader status="loading" onCopy={() => {}} copied={false} />
+      <section className="public-proof-hero">
+        <span className="eyebrow">Loading public proof</span>
+        <h2>{title}</h2>
+        <p>Resolving receipt metadata, campaign proof, and Stellar Expert transaction links.</p>
+      </section>
+    </div>
+  );
+}
+
+function PublicReceiptPage({ receipt, proof, status, copied, onCopy }) {
+  const campaign = proof?.campaign;
+  const contractId = proof?.contractId || campaign?.contractId || CONTRACT_ID;
+
+  return (
+    <div className="app-shell public-proof-shell">
+      <PublicProofHeader status={status} onCopy={onCopy} copied={copied} />
+
+      <section className="public-proof-hero receipt-public-hero">
+        <div>
+          <span className="eyebrow">Public impact receipt</span>
+          <h2>{receipt.campaign}</h2>
+          <p>
+            This shareable receipt connects checkout payment, escrow custody, verifier evidence, refund
+            state, and Stellar transaction proof without requiring a wallet connection.
+          </p>
+        </div>
+        <div className="public-proof-actions">
+          <a className="button button-primary" href={makeProofLink(receipt.projectId)}>
+            <ShieldCheck size={17} aria-hidden="true" />
+            Campaign proof
+          </a>
+          <a className="button button-ghost" href={explorerTx(receipt.transactionHash)} target="_blank" rel="noreferrer">
+            <ExternalLink size={17} aria-hidden="true" />
+            Stellar Expert
+          </a>
+        </div>
+      </section>
+
+      <main className="public-proof-grid">
+        <section className="tool-panel public-receipt-card">
+          <div className="panel-title">
+            <ReceiptText size={18} aria-hidden="true" />
+            <div>
+              <span>Receipt ID</span>
+              <h3>{receipt.voucherId}</h3>
+            </div>
+          </div>
+          <div className="receipt-paper public-receipt-paper">
+            <div className="receipt-row">
+              <span>Buyer</span>
+              <strong>{receipt.buyer}</strong>
+            </div>
+            <div className="receipt-row">
+              <span>Merchant</span>
+              <strong>{receipt.merchant}</strong>
+            </div>
+            <div className="receipt-row">
+              <span>Campaign</span>
+              <strong>{receipt.campaign}</strong>
+            </div>
+            <div className="receipt-row">
+              <span>Impact funded</span>
+              <strong>
+                {receipt.impactAmount.toLocaleString()} {receipt.impactUnit}
+              </strong>
+            </div>
+            <div className="receipt-row">
+              <span>Paid</span>
+              <strong>{stroopsToXlm(receipt.paidAmount)} XLM</strong>
+            </div>
+            <div className="receipt-row">
+              <span>Transaction</span>
+              <a href={explorerTx(receipt.transactionHash)} target="_blank" rel="noreferrer">
+                {shortAddress(receipt.transactionHash)}
+              </a>
+            </div>
+            <div className="receipt-row">
+              <span>Verification</span>
+              <strong>{receipt.verificationStatus}</strong>
+            </div>
+            <div className="receipt-row">
+              <span>Refund status</span>
+              <strong>{receipt.refundStatus}</strong>
+            </div>
+            <div className="receipt-row">
+              <span>Report hash</span>
+              <strong>{receipt.reportHash}</strong>
+            </div>
+            <div className="receipt-row">
+              <span>Issued</span>
+              <strong>{formatDateTime(receipt.issuedAt)}</strong>
+            </div>
+          </div>
+        </section>
+
+        <aside className="tool-panel public-proof-card">
+          <div className="panel-title">
+            <ShieldCheck size={18} aria-hidden="true" />
+            <div>
+              <span>Settlement proof</span>
+              <h3>{proof?.network || "Stellar Testnet"}</h3>
+            </div>
+          </div>
+          <ProofItem label="Contract" value={shortAddress(contractId)} link={explorerContract(contractId)} />
+          <ProofItem label="Campaign" value={`#${receipt.projectId}`} link={makeProofLink(receipt.projectId)} />
+          <ProofItem label="Escrow status" value={campaign?.verifiedUnits > 0 ? "Verified payout path" : "Refund protected"} />
+          <ProofItem label="Updated" value={formatDateTime(proof?.updatedAt || receipt.issuedAt)} />
+        </aside>
+      </main>
+    </div>
+  );
+}
+
+function ProofTimelinePage({ proof, status, copied, onCopy }) {
+  const campaign = proof.campaign;
+
+  return (
+    <div className="app-shell public-proof-shell">
+      <PublicProofHeader status={status} onCopy={onCopy} copied={copied} />
+
+      <section className="public-proof-hero">
+        <div>
+          <span className="eyebrow">Campaign proof timeline</span>
+          <h2>{campaign.title}</h2>
+          <p>
+            A public chain of evidence for checkout, vault custody, verifier action, customer receipt,
+            payout, and refund protection.
+          </p>
+        </div>
+        <div className="public-proof-actions">
+          {proof.receipts[0] ? (
+            <a className="button button-primary" href={makeReceiptLink(proof.receipts[0].voucherId)}>
+              <ReceiptText size={17} aria-hidden="true" />
+              Public receipt
+            </a>
+          ) : null}
+          {proof.contractExplorerUrl ? (
+            <a className="button button-ghost" href={proof.contractExplorerUrl} target="_blank" rel="noreferrer">
+              <ExternalLink size={17} aria-hidden="true" />
+              Contract proof
+            </a>
+          ) : null}
+        </div>
+      </section>
+
+      <main className="public-proof-grid">
+        <section className="proof-timeline-card">
+          <div className="panel-title">
+            <Clock3 size={18} aria-hidden="true" />
+            <div>
+              <span>Ordered Testnet proof</span>
+              <h3>Proof Timeline</h3>
+            </div>
+          </div>
+          <div className="proof-timeline">
+            {proof.timeline.map((item, index) => (
+              <article className="timeline-item" key={`${item.stage}-${item.hash}`}>
+                <div className="timeline-index">{String(index + 1).padStart(2, "0")}</div>
+                <div>
+                  <span>{item.stage.replaceAll("_", " ")}</span>
+                  <h4>{item.label}</h4>
+                  <p>{item.meaning}</p>
+                  <div className="timeline-meta">
+                    <strong>{item.status}</strong>
+                    <a href={item.stellarExpertUrl || explorerTx(item.hash)} target="_blank" rel="noreferrer">
+                      {shortAddress(item.hash)}
+                      <ExternalLink size={14} aria-hidden="true" />
+                    </a>
+                  </div>
+                </div>
+              </article>
+            ))}
+          </div>
+        </section>
+
+        <aside className="tool-panel public-proof-card">
+          <div className="panel-title">
+            <Banknote size={18} aria-hidden="true" />
+            <div>
+              <span>Financial state</span>
+              <h3>{campaign.contractBacked ? "Contract-backed" : "Preview proof"}</h3>
+            </div>
+          </div>
+          <ProofItem label="Network" value={proof.network} />
+          <ProofItem label="Vouchers sold" value={campaign.vouchersSold.toLocaleString()} />
+          <ProofItem label="Escrow funded" value={`${stroopsToXlm(campaign.fundedAmount)} XLM`} />
+          <ProofItem label="Verified units" value={campaign.verifiedUnits.toLocaleString()} />
+          <ProofItem label="Refund status" value={campaign.refundStatus} />
+          <ProofItem label="Report hash" value={campaign.reportHash} />
+        </aside>
+      </main>
+    </div>
   );
 }
 
@@ -474,6 +798,11 @@ export default function App() {
   const [lastTx, setLastTx] = useState(null);
   const [error, setError] = useState("");
   const [busy, setBusy] = useState("");
+  const [publicRoute, setPublicRoute] = useState(getPublicRouteFromHash);
+  const [publicReceipt, setPublicReceipt] = useState(null);
+  const [publicProof, setPublicProof] = useState(null);
+  const [publicProofStatus, setPublicProofStatus] = useState("idle");
+  const [publicProofError, setPublicProofError] = useState("");
 
   const configured = isContractConfigured();
   const selectedFlow = flowTabs.find((tab) => tab.id === activeFlow) || flowTabs[0];
@@ -551,10 +880,12 @@ export default function App() {
   useEffect(() => {
     function syncCheckoutRoute() {
       const route = getCheckoutRouteFromHash();
+      const nextPublicRoute = getPublicRouteFromHash();
+      setPublicRoute(nextPublicRoute);
       const campaign = getCampaignByProjectId(route.projectId, campaigns);
       setSelectedCampaignId(campaign.projectId);
       setRouteSessionId(route.sessionId);
-      if (typeof window !== "undefined" && window.location.hash.startsWith("#/checkout/")) {
+      if (nextPublicRoute.type === "checkout") {
         setActiveFlow("customer");
         setCheckoutStage("quote");
       }
@@ -564,6 +895,64 @@ export default function App() {
     window.addEventListener("hashchange", syncCheckoutRoute);
     return () => window.removeEventListener("hashchange", syncCheckoutRoute);
   }, [campaigns]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadPublicProof() {
+      if (publicRoute.type !== "receipt" && publicRoute.type !== "proof") {
+        setPublicReceipt(null);
+        setPublicProof(null);
+        setPublicProofStatus("idle");
+        setPublicProofError("");
+        return;
+      }
+
+      setPublicProofStatus("loading");
+      setPublicProofError("");
+
+      if (publicRoute.type === "receipt") {
+        try {
+          const receiptResult = await fetchReceipt(publicRoute.voucherId);
+          const receipt = receiptResult.data;
+          const proofResult = await fetchProof(receipt.projectId);
+          if (cancelled) return;
+          setPublicReceipt(receipt);
+          setPublicProof(proofResult.data);
+          setPublicProofStatus("connected");
+        } catch (err) {
+          const fallbackReceipt = getFallbackReceipt(publicRoute.voucherId);
+          const fallbackProof = fallbackReceipt ? getFallbackProof(fallbackReceipt.projectId) : null;
+          if (cancelled) return;
+          setPublicReceipt(fallbackReceipt);
+          setPublicProof(fallbackProof);
+          setPublicProofStatus(fallbackReceipt ? "fallback" : "missing");
+          setPublicProofError(err.message || "Receipt proof could not be loaded.");
+        }
+        return;
+      }
+
+      try {
+        const proofResult = await fetchProof(publicRoute.projectId);
+        if (cancelled) return;
+        setPublicReceipt(proofResult.data.receipts[0] || null);
+        setPublicProof(proofResult.data);
+        setPublicProofStatus("connected");
+      } catch (err) {
+        const fallbackProof = getFallbackProof(publicRoute.projectId);
+        if (cancelled) return;
+        setPublicReceipt(fallbackProof?.receipts[0] || null);
+        setPublicProof(fallbackProof);
+        setPublicProofStatus(fallbackProof ? "fallback" : "missing");
+        setPublicProofError(err.message || "Campaign proof could not be loaded.");
+      }
+    }
+
+    loadPublicProof();
+    return () => {
+      cancelled = true;
+    };
+  }, [publicRoute]);
 
   useEffect(() => {
     let cancelled = false;
@@ -696,6 +1085,14 @@ export default function App() {
     }
   }
 
+  function openProof(campaign) {
+    openHashRoute(`#/proof/${campaign.projectId}`);
+  }
+
+  function openReceipt() {
+    openHashRoute("#/receipt/voucher-1");
+  }
+
   async function copyCheckoutLink() {
     try {
       await navigator.clipboard.writeText(checkoutLink);
@@ -704,6 +1101,66 @@ export default function App() {
     } catch {
       setError("Copy failed. Select the checkout link and copy it manually.");
     }
+  }
+
+  async function copyPublicPageLink() {
+    if (typeof window === "undefined") return;
+    try {
+      await navigator.clipboard.writeText(window.location.href);
+      setCopiedLink(window.location.href);
+      setError("");
+    } catch {
+      setError("Copy failed. Select the page URL and copy it manually.");
+    }
+  }
+
+  if (publicRoute.type === "receipt") {
+    if ((publicProofStatus === "idle" || publicProofStatus === "loading") && !publicReceipt) {
+      return <PublicLoading title="Resolving receipt proof" />;
+    }
+
+    if (publicProofStatus === "missing" || (!publicReceipt && publicProofStatus !== "loading")) {
+      return (
+        <PublicNotFound
+          title="Receipt was not found"
+          detail={publicProofError || "This public receipt ID is not indexed by the product API."}
+        />
+      );
+    }
+
+    return (
+      <PublicReceiptPage
+        receipt={publicReceipt || getFallbackReceipt(publicRoute.voucherId)}
+        proof={publicProof || getFallbackProof(1)}
+        status={publicProofStatus}
+        copied={copiedLink === (typeof window !== "undefined" ? window.location.href : "")}
+        onCopy={copyPublicPageLink}
+      />
+    );
+  }
+
+  if (publicRoute.type === "proof") {
+    if ((publicProofStatus === "idle" || publicProofStatus === "loading") && !publicProof) {
+      return <PublicLoading title="Resolving campaign proof" />;
+    }
+
+    if (publicProofStatus === "missing" || (!publicProof && publicProofStatus !== "loading")) {
+      return (
+        <PublicNotFound
+          title="Campaign proof was not found"
+          detail={publicProofError || "This campaign proof is not indexed by the product API."}
+        />
+      );
+    }
+
+    return (
+      <ProofTimelinePage
+        proof={publicProof || getFallbackProof(publicRoute.projectId)}
+        status={publicProofStatus}
+        copied={copiedLink === (typeof window !== "undefined" ? window.location.href : "")}
+        onCopy={copyPublicPageLink}
+      />
+    );
   }
 
   return (
@@ -811,7 +1268,7 @@ export default function App() {
           </div>
           <div>
             <span>Indexed proof</span>
-            <strong>{merchantDashboard?.indexedTransactionCount ?? 4} tx refs</strong>
+            <strong>{merchantDashboard?.indexedTransactionCount ?? 8} tx refs</strong>
           </div>
           <div>
             <span>Escrow balance</span>
@@ -833,6 +1290,7 @@ export default function App() {
                 active={selectedCampaign.projectId === campaign.projectId}
                 onSelect={selectCampaign}
                 onOpenCheckout={openCheckout}
+                onOpenProof={openProof}
               />
             ))}
           </div>
@@ -843,6 +1301,7 @@ export default function App() {
             copied={copiedLink === checkoutLink}
             onCopy={copyCheckoutLink}
             onOpenCheckout={openCheckout}
+            onOpenProof={openProof}
           />
         </div>
       </section>
@@ -1032,6 +1491,7 @@ export default function App() {
             quantity={Number(quantity || 0)}
             lastTx={lastTx}
             checkoutStage={checkoutStage}
+            onOpenReceipt={openReceipt}
           />
 
           <section className="tool-panel">

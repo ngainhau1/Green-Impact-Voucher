@@ -8,6 +8,7 @@ Evidence:
 
 - UI modes in `frontend/src/App.jsx`: Customer Checkout, Merchant Console, Verifier Vault.
 - Impact Receipt in `frontend/src/App.jsx`.
+- Public receipt route `#/receipt/voucher-1` and proof timeline routes `#/proof/1`, `#/proof/2`.
 - Submission description in `docs/submission-form.md`.
 
 Why it matters:
@@ -50,6 +51,7 @@ Evidence:
 - Uses Freighter wallet through `@stellar/freighter-api`.
 - Uses Stellar SDK through `@stellar/stellar-sdk`.
 - Links every major transaction to Stellar Expert.
+- Backend proof bundle endpoint exposes ordered Testnet proof for verified and refund paths.
 - Uses native XLM SAC now; roadmap includes local stable assets or anchor-issued assets.
 
 ## Technical Quality
@@ -73,6 +75,11 @@ cd frontend
 npm run build
 npm run lint
 npm audit --omit=dev
+cd ../backend
+npm run build
+npm test
+npm run lint
+npm audit --omit=dev
 ```
 
 ## Testnet Proof
@@ -94,6 +101,9 @@ npm audit --omit=dev
 - Stellar Expert screenshot: `docs/screenshots/stellar-expert-contract.png`.
 - Demo script: `docs/demo-script.md`.
 - Demo video outline: `docs/demo-video-outline.md`.
+- Public receipt: `http://127.0.0.1:5173/#/receipt/voucher-1`.
+- Verified proof timeline: `http://127.0.0.1:5173/#/proof/1`.
+- Refund proof timeline: `http://127.0.0.1:5173/#/proof/2`.
 
 ## Remaining Submission-Portal Items
 

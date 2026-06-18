@@ -3,6 +3,7 @@
 ## 0. Setup
 
 - Open the frontend at `http://127.0.0.1:5173/`.
+- Keep public proof routes ready: `#/receipt/voucher-1`, `#/proof/1`, and `#/proof/2`.
 - Connect Freighter on Stellar Testnet.
 - Show `README.md` and `docs/screenshots/`.
 - Mention that `.env`, private keys, `target`, `frontend/dist`, and `frontend/node_modules` are ignored.
@@ -55,12 +56,15 @@ Key proof line: `buy_voucher` transfers 2,000,000 stroops into the contract vaul
 2. Show the top proof card with Stellar Testnet, contract, payment asset, and verified report.
 3. Show the customer checkout quote: voucher price, impact funded, escrow status, and `Buy Voucher`.
 4. Show the Impact Receipt: buyer, campaign, impact, paid amount, transaction, and verification status.
-5. Connect Freighter.
-6. Buy a voucher and open the Stellar Expert transaction link.
-7. Verify project impact from the owner/admin account.
-8. Retire voucher ID `1`.
-9. Show the refund policy/deadline fields and the `Claim Refund` control.
-10. Show that the Impact Passport and vault counters refresh after transactions.
+5. Open the public receipt page at `http://127.0.0.1:5173/#/receipt/voucher-1`.
+6. Open the verified proof timeline at `http://127.0.0.1:5173/#/proof/1`.
+7. Open the refund proof timeline at `http://127.0.0.1:5173/#/proof/2`.
+8. Connect Freighter.
+9. Buy a voucher and open the Stellar Expert transaction link.
+10. Verify project impact from the owner/admin account.
+11. Retire voucher ID `1`.
+12. Show the refund policy/deadline fields and the `Claim Refund` control.
+13. Show that the Impact Passport and vault counters refresh after transactions.
 
 ## 5. Quality Gates
 
@@ -73,6 +77,11 @@ cd frontend
 npm run build
 npm run lint
 npm audit --omit=dev
+cd ../backend
+npm run build
+npm test
+npm run lint
+npm audit --omit=dev
 ```
 
 Expected result:
@@ -80,6 +89,7 @@ Expected result:
 - 20 contract tests pass.
 - WASM builds successfully and is under 64KB.
 - Frontend build and lint pass.
+- Backend build, 8 API tests, and lint pass.
 - Audit reports 0 vulnerabilities.
 
 ## 6. Close

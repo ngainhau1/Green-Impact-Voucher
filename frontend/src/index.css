@@ -61,6 +61,7 @@ a {
 .tool-panel,
   .notice,
   .proof-card,
+  .proof-timeline-card,
   .context-card,
   .flow-rail,
   .merchant-console,
@@ -489,6 +490,12 @@ a {
   gap: 12px;
   padding: 12px;
   background: #ffffff;
+}
+
+.campaign-card-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
 }
 
 .campaign-card.active {
@@ -1039,6 +1046,158 @@ summary:focus-visible {
   margin-top: 12px;
 }
 
+.public-proof-shell {
+  max-width: 1240px;
+}
+
+.public-topbar {
+  background: rgba(255, 253, 248, 0.96);
+}
+
+.public-brand {
+  color: inherit;
+  text-decoration: none;
+}
+
+.public-proof-hero {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 18px;
+  margin-top: 18px;
+  padding: 24px;
+  color: #ffffff;
+  border: 1px solid rgba(18, 61, 53, 0.35);
+  border-radius: 8px;
+  background:
+    linear-gradient(135deg, rgba(18, 61, 53, 0.96), rgba(66, 110, 127, 0.9)),
+    var(--evergreen);
+  box-shadow: 0 18px 46px rgba(23, 33, 29, 0.08);
+}
+
+.public-proof-hero .eyebrow {
+  color: #c9d7c3;
+}
+
+.public-proof-hero h2 {
+  max-width: 780px;
+  margin: 8px 0 0;
+  font-size: 3.2rem;
+  line-height: 1;
+  letter-spacing: 0;
+}
+
+.public-proof-hero p {
+  max-width: 760px;
+  margin: 12px 0 0;
+  color: #e1eadf;
+  font-weight: 650;
+  line-height: 1.55;
+}
+
+.public-proof-actions {
+  display: flex;
+  flex: 0 0 auto;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: flex-end;
+}
+
+.public-proof-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.45fr) minmax(320px, 0.72fr);
+  gap: 18px;
+  margin-top: 18px;
+}
+
+.public-receipt-card,
+.public-proof-card,
+.proof-timeline-card {
+  background: rgba(255, 253, 248, 0.96);
+}
+
+.public-receipt-paper .receipt-row {
+  min-height: 44px;
+}
+
+.proof-timeline-card {
+  padding: 20px;
+}
+
+.proof-timeline {
+  display: grid;
+  gap: 12px;
+}
+
+.timeline-item {
+  display: grid;
+  grid-template-columns: 46px minmax(0, 1fr);
+  gap: 12px;
+  padding: 14px;
+  border: 1px solid #ded8c9;
+  border-radius: 8px;
+  background: #ffffff;
+}
+
+.timeline-index {
+  width: 38px;
+  height: 38px;
+  display: grid;
+  place-items: center;
+  color: var(--evergreen);
+  border: 1px solid #cbddc5;
+  border-radius: 8px;
+  background: #eef5ea;
+  font-size: 0.8rem;
+  font-weight: 950;
+}
+
+.timeline-item span {
+  color: var(--ledger);
+  font-size: 0.76rem;
+  font-weight: 950;
+  text-transform: uppercase;
+}
+
+.timeline-item h4 {
+  margin: 4px 0 0;
+  font-size: 1.02rem;
+  letter-spacing: 0;
+}
+
+.timeline-item p {
+  margin: 7px 0 0;
+  color: var(--muted);
+  font-weight: 650;
+  line-height: 1.45;
+}
+
+.timeline-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 10px;
+}
+
+.timeline-meta strong {
+  padding: 6px 8px;
+  color: var(--evergreen);
+  border-radius: 8px;
+  background: #e3ecdf;
+  font-size: 0.78rem;
+}
+
+.timeline-meta a {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--evergreen);
+  font-weight: 900;
+  overflow-wrap: anywhere;
+}
+
 .admin-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -1149,9 +1308,15 @@ summary:focus-visible {
   .hero-grid,
   .dashboard-grid,
   .console-grid,
+  .public-proof-grid,
   .admin-grid,
   .market-context {
     grid-template-columns: 1fr;
+  }
+
+  .public-proof-hero {
+    align-items: flex-start;
+    flex-direction: column;
   }
 
   .metrics-grid,
@@ -1200,6 +1365,15 @@ summary:focus-visible {
     font-size: 2.3rem;
   }
 
+  .public-proof-hero h2 {
+    font-size: 2.25rem;
+  }
+
+  .public-proof-actions,
+  .public-proof-actions .button {
+    width: 100%;
+  }
+
   .role-switcher,
   .metrics-grid,
   .backend-strip,
@@ -1234,6 +1408,11 @@ summary:focus-visible {
   }
 
   .campaign-card-metrics {
+    grid-template-columns: 1fr;
+  }
+
+  .campaign-card-actions,
+  .timeline-item {
     grid-template-columns: 1fr;
   }
 

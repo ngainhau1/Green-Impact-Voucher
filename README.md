@@ -4,7 +4,7 @@ Green Impact Voucher is a green checkout finance dApp verified on Stellar. It le
 
 ## UI Preview
 
-The React frontend presents the product as a fintech checkout workflow backed by a product API: Customer Checkout, Merchant Console campaign list, scannable QR checkout sessions, Verifier Vault, smart contract proof, escrowed vault balance, and receipt-state customer proof.
+The React frontend presents the product as a fintech checkout workflow backed by a product API: Customer Checkout, Merchant Console campaign list, scannable QR checkout sessions, Verifier Vault, smart contract proof, escrowed vault balance, public receipt sharing, and campaign proof timelines.
 
 ![Green Impact Voucher fintech checkout UI](docs/screenshots/frontend-dashboard.png)
 
@@ -34,12 +34,13 @@ Stellar makes this use case practical because fees are low enough for micro-cont
 ## Key Features
 
 - Real payment flow using the native XLM Stellar Asset Contract on Testnet.
-- Backend product API for merchant campaigns, checkout sessions, receipt metadata, dashboard metrics, and indexed transaction references.
+- Backend product API for merchant campaigns, checkout sessions, public receipts, proof bundles, dashboard metrics, and indexed transaction references.
 - Contract vault custody: voucher purchases transfer payment into the contract.
 - Verified release: project owner can withdraw funds only after impact is verified.
 - Refund protection: unverified vouchers can be refunded after the verification deadline.
-- Customer checkout, merchant console, verifier vault, and impact receipt surfaces in the UI.
+- Customer checkout, merchant console, verifier vault, impact receipt, public receipt, and proof timeline surfaces in the UI.
 - Merchant campaign list with scannable QR checkout links and route-like customer checkout state.
+- Shareable proof routes: `#/receipt/voucher-1`, `#/proof/1`, and `#/proof/2`.
 - Voucher lifecycle: create project, buy voucher, verify impact, retire voucher, withdraw funds.
 - Typed Soroban storage keys, typed custom errors, TTL extension, and structured events.
 - Freighter-connected React dashboard with Stellar Expert transaction links.
@@ -53,7 +54,7 @@ Stellar makes this use case practical because fees are low enough for micro-cont
 4. The contract transfers payment from the customer into the vault.
 5. The UI moves from quote state to receipt state with buyer, campaign, impact units, paid amount, transaction, and verification status.
 6. Owner/admin verifies delivered impact with a report hash.
-7. Customer retires the voucher as public proof of funded impact.
+7. Customer opens a public receipt page and campaign proof timeline for receipt-grade proof.
 8. Project owner withdraws verified funds from the vault.
 9. If a campaign misses its verification deadline, the customer can refund the voucher before payout.
 
@@ -85,6 +86,16 @@ Stellar makes this use case practical because fees are low enough for micro-cont
 | Refund voucher | <https://stellar.expert/explorer/testnet/tx/7b44332277ce3be6b4d3167cf67f323b2956cb22593108ab4726b2537c28f9bf> |
 
 The `buy_voucher` transaction transfers `2,000,000` stroops from the buyer to the contract. The `withdraw_funds` transaction transfers `1,000,000` stroops from the contract vault back to the project owner after verification. The refund proof transfers `500,000` stroops back to the buyer after an unverified campaign passes its verification deadline.
+
+## Public Proof Routes
+
+Run the frontend locally, then open:
+
+- Public customer receipt: <http://127.0.0.1:5173/#/receipt/voucher-1>
+- Verified campaign proof timeline: <http://127.0.0.1:5173/#/proof/1>
+- Refund proof timeline: <http://127.0.0.1:5173/#/proof/2>
+
+These pages do not require Freighter. They use the product API proof bundle and fall back to seeded Testnet proof when the backend is unavailable.
 
 ## Tech Stack
 
@@ -282,7 +293,7 @@ stellar contract invoke \
 
 ## Backend Product API
 
-The backend is a product layer for checkout sessions, campaign data, receipt metadata, merchant dashboard metrics, and indexed transaction references. It does not custody funds, hold private keys, sign transactions, or override Soroban state.
+The backend is a product layer for checkout sessions, campaign data, public receipt metadata, proof bundles, merchant dashboard metrics, and indexed transaction references. It does not custody funds, hold private keys, sign transactions, or override Soroban state.
 
 See [docs/backend-api.md](docs/backend-api.md) for endpoint details.
 

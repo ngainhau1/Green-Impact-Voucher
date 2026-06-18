@@ -7,6 +7,7 @@ Use this checklist before uploading the project to the Rise In APAC Stellar Hack
 - Push the repository to a public GitHub repo.
 - Confirm `.env`, private keys, `target/`, `frontend/dist/`, and `frontend/node_modules/` are not committed.
 - Confirm `README.md` opens with the fintech checkout screenshot and links to Testnet proof.
+- Confirm public proof routes work: `#/receipt/voucher-1`, `#/proof/1`, and `#/proof/2`.
 - Confirm the GitHub repo contains:
   - `contracts/impact_voucher/src/lib.rs`
   - `contracts/impact_voucher/src/test.rs`
@@ -46,6 +47,11 @@ cd frontend
 npm run build
 npm run lint
 npm audit --omit=dev
+cd ../backend
+npm run build
+npm test
+npm run lint
+npm audit --omit=dev
 ```
 
 On Windows, the same checks can be run with:
@@ -60,6 +66,7 @@ Expected result:
 - WASM build succeeds.
 - WASM size remains under 64KB.
 - Frontend build and lint pass.
+- Backend build, 8 API tests, and lint pass.
 - Audit reports 0 vulnerabilities.
 
 ## Demo Video Must Show
@@ -68,6 +75,9 @@ Expected result:
 - Merchant Console mode.
 - Verifier Vault mode.
 - Impact Receipt.
+- Public receipt page.
+- Campaign proof timeline.
+- Refund proof timeline.
 - Stellar Expert contract page.
 - Buy voucher transaction.
 - Withdraw funds transaction.

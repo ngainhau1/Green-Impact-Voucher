@@ -9,6 +9,7 @@ import { createRepository } from "./store/repository.js";
 import { registerCampaignRoutes } from "./features/campaigns.js";
 import { registerCheckoutSessionRoutes } from "./features/checkoutSessions.js";
 import { registerReceiptRoutes } from "./features/receipts.js";
+import { registerProofRoutes } from "./features/proof.js";
 import { registerMerchantRoutes } from "./features/merchant.js";
 import { registerIndexerRoutes } from "./features/indexer.js";
 
@@ -53,6 +54,7 @@ export async function buildApp(options = {}) {
   await registerCampaignRoutes(app, { repository, config });
   await registerCheckoutSessionRoutes(app, { repository, config });
   await registerReceiptRoutes(app, { repository, config });
+  await registerProofRoutes(app, { repository, config });
   await registerMerchantRoutes(app, { repository, config });
   await registerIndexerRoutes(app, { repository, config });
 
