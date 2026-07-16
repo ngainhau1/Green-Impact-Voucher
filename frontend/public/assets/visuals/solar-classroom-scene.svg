@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 620" role="img" aria-label="Solar classroom impact scene">
+  <defs>
+    <linearGradient id="bg" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0" stop-color="#fffdf8"/>
+      <stop offset="1" stop-color="#e3ecdf"/>
+    </linearGradient>
+    <linearGradient id="roof" x1="0" x2="1">
+      <stop offset="0" stop-color="#123d35"/>
+      <stop offset="1" stop-color="#426e7f"/>
+    </linearGradient>
+  </defs>
+  <rect width="900" height="620" rx="28" fill="url(#bg)"/>
+  <circle cx="720" cy="122" r="72" fill="#d6a23f" opacity="0.72"/>
+  <path d="M88 328 446 142l366 186Z" fill="#17211d" opacity="0.92"/>
+  <path d="M170 330h548v190H170z" fill="#fffdf8" stroke="#d9d3c4" stroke-width="4"/>
+  <path d="M160 330h568v36H160z" fill="#d6a23f"/>
+  <path d="M232 372h132v92H232zM416 372h132v92H416zM600 372h84v148h-84z" fill="#e3ecdf" stroke="#d9d3c4" stroke-width="4"/>
+  <path d="M268 370v94M452 370v94M232 418h132M416 418h132" stroke="#607a55" stroke-width="3" opacity="0.55"/>
+  <path d="M284 246 446 162l166 84-167 84Z" fill="url(#roof)"/>
+  <path d="M326 246h238M364 226l162 82M406 204l162 82M474 180 312 262" stroke="#fffdf8" stroke-opacity="0.38" stroke-width="3"/>
+  <path d="M118 520h704" stroke="#607a55" stroke-width="5" stroke-linecap="round"/>
+  <path d="M148 520c24-42 48-42 72 0M710 520c24-54 54-54 90 0" fill="none" stroke="#607a55" stroke-width="5" stroke-linecap="round"/>
+</svg>

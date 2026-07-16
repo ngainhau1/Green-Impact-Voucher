@@ -4,7 +4,7 @@ Green Impact Voucher is a green checkout finance dApp verified on Stellar. It le
 
 ## UI Preview
 
-The React frontend presents the product as a fintech checkout workflow backed by a product API: Customer Checkout, Merchant Console campaign list, scannable QR checkout sessions, Verifier Vault, smart contract proof, escrowed vault balance, public receipt sharing, and campaign proof timelines.
+The React frontend now presents the product as an **A+C nature-fintech proof experience**: Satellite Proof plus Solar Classroom Journey. The UI connects Customer Checkout, Merchant Console, scannable QR checkout sessions, Verifier Vault, smart contract proof, escrowed vault balance, public receipt sharing, and campaign proof timelines in one visual journey.
 
 ![Green Impact Voucher fintech checkout UI](docs/screenshots/frontend-dashboard.png)
 
@@ -41,6 +41,7 @@ Stellar makes this use case practical because fees are low enough for micro-cont
 - Customer checkout, merchant console, verifier vault, impact receipt, public receipt, and proof timeline surfaces in the UI.
 - Merchant campaign list with scannable QR checkout links and route-like customer checkout state.
 - Shareable proof routes: `#/receipt/voucher-1`, `#/proof/1`, and `#/proof/2`.
+- A+C Big UI: satellite proof hero, solar classroom journey, vault ledger visuals, receipt texture, and CSS-only proof motion.
 - Voucher lifecycle: create project, buy voucher, verify impact, retire voucher, withdraw funds.
 - Typed Soroban storage keys, typed custom errors, TTL extension, and structured events.
 - Freighter-connected React dashboard with Stellar Expert transaction links.
@@ -105,6 +106,7 @@ These pages do not require Freighter. They use the product API proof bundle and 
 - Backend: Node.js, Fastify, Zod validation, local JSON storage
 - Wallet: Freighter via `@stellar/freighter-api`
 - SDK: `@stellar/stellar-sdk`
+- Visual assets: handcrafted local SVG scenes in `frontend/public/assets/visuals/`
 
 ## Repository Structure
 
@@ -118,7 +120,11 @@ GreenImpactVoucher/
 |           `-- test.rs
 |-- frontend/
 |   |-- public/
+|   |   `-- assets/
+|   |       `-- visuals/
 |   `-- src/
+|       |-- components/
+|       `-- lib/
 |-- backend/
 |   |-- src/
 |   |-- test/
@@ -319,6 +325,8 @@ See [docs/backend-api.md](docs/backend-api.md) for endpoint details.
 - Demo video outline: [docs/demo-video-outline.md](docs/demo-video-outline.md)
 - Final submission checklist: [docs/final-submission-checklist.md](docs/final-submission-checklist.md)
 - Frontend screenshot: [docs/screenshots/frontend-dashboard.png](docs/screenshots/frontend-dashboard.png)
+- Public receipt screenshot: [docs/screenshots/public-receipt.png](docs/screenshots/public-receipt.png)
+- Proof timeline screenshot: [docs/screenshots/proof-timeline.png](docs/screenshots/proof-timeline.png)
 - Stellar Expert screenshot: [docs/screenshots/stellar-expert-contract.png](docs/screenshots/stellar-expert-contract.png)
 
 ## Future Scope

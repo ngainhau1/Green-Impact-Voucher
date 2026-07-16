@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 620" role="img" aria-label="Escrow vault ledger grid">
+  <defs>
+    <linearGradient id="vault" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0" stop-color="#17211d"/>
+      <stop offset="1" stop-color="#123d35"/>
+    </linearGradient>
+    <pattern id="cells" width="64" height="64" patternUnits="userSpaceOnUse">
+      <path d="M64 0H0v64" fill="none" stroke="#fffdf8" stroke-opacity="0.09"/>
+    </pattern>
+  </defs>
+  <rect width="900" height="620" rx="28" fill="url(#vault)"/>
+  <rect width="900" height="620" rx="28" fill="url(#cells)"/>
+  <rect x="110" y="114" width="680" height="392" rx="18" fill="#fffdf8" opacity="0.08" stroke="#fffdf8" stroke-opacity="0.2"/>
+  <circle cx="450" cy="310" r="118" fill="none" stroke="#d6a23f" stroke-width="9" opacity="0.78"/>
+  <circle cx="450" cy="310" r="62" fill="none" stroke="#fffdf8" stroke-width="7" opacity="0.38"/>
+  <path d="M450 198v224M338 310h224" stroke="#d6a23f" stroke-width="6" stroke-linecap="round" opacity="0.64"/>
+  <path d="M166 166h180M166 218h142M166 454h204M610 166h124M560 454h174" stroke="#fffdf8" stroke-width="8" stroke-linecap="round" opacity="0.22"/>
+</svg>

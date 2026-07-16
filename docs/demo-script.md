@@ -52,19 +52,21 @@ Key proof line: `buy_voucher` transfers 2,000,000 stroops into the contract vaul
 
 ## 4. Show the Frontend Flow
 
-1. Show the three product modes: `Customer Checkout`, `Merchant Console`, and `Verifier Vault`.
-2. Show the top proof card with Stellar Testnet, contract, payment asset, and verified report.
-3. Show the customer checkout quote: voucher price, impact funded, escrow status, and `Buy Voucher`.
-4. Show the Impact Receipt: buyer, campaign, impact, paid amount, transaction, and verification status.
-5. Open the public receipt page at `http://127.0.0.1:5173/#/receipt/voucher-1`.
-6. Open the verified proof timeline at `http://127.0.0.1:5173/#/proof/1`.
-7. Open the refund proof timeline at `http://127.0.0.1:5173/#/proof/2`.
-8. Connect Freighter.
-9. Buy a voucher and open the Stellar Expert transaction link.
-10. Verify project impact from the owner/admin account.
-11. Retire voucher ID `1`.
-12. Show the refund policy/deadline fields and the `Claim Refund` control.
-13. Show that the Impact Passport and vault counters refresh after transactions.
+1. Show the A+C hero: Satellite Proof plus Solar Classroom Journey.
+2. Show the satellite proof map with scan motion, Stellar Testnet, contract, payment asset, and verified report.
+3. Show the Solar Classroom Journey section: checkout, vault, satellite proof, and public receipt.
+4. Show the three product modes: `Customer Checkout`, `Merchant Console`, and `Verifier Vault`.
+5. Show the customer checkout quote: voucher price, impact funded, escrow status, and `Buy Voucher`.
+6. Show the Impact Receipt: buyer, campaign, impact, paid amount, transaction, and verification status.
+7. Open the public receipt page at `http://127.0.0.1:5173/#/receipt/voucher-1`.
+8. Open the verified proof timeline at `http://127.0.0.1:5173/#/proof/1`.
+9. Open the refund proof timeline at `http://127.0.0.1:5173/#/proof/2`.
+10. Connect Freighter.
+11. Buy a voucher and open the Stellar Expert transaction link.
+12. Verify project impact from the owner/admin account.
+13. Retire voucher ID `1`.
+14. Show the refund policy/deadline fields and the `Claim Refund` control.
+15. Show that the Impact Passport and vault counters refresh after transactions.
 
 ## 5. Quality Gates
 
